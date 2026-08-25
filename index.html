@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scrap Runner</title>
+  <meta name="description" content="Scavenge the yard. Collect energy cells, dodge scrap bots, and reach the extraction hatch. Same Arcade Engage account as Field Rush." />
+  <link rel="canonical" href="https://scrap-runner.vercel.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://scrap-runner.vercel.app/" />
+  <meta property="og:title" content="Scrap Runner" />
+  <meta property="og:description" content="A wasteland scavenger run. Collect the cells, then scramble for the hatch." />
+  <link rel="stylesheet" href="/css/theme.css" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="page">
+    <aside class="side-rail side-rail-left" aria-label="Players and account">
+      <section class="side-card online-panel">
+        <p class="keys-kicker">Online</p>
+        <p id="online-empty" class="signup-lead">Looking for scavengers…</p>
+        <ul id="online-list" class="online-list"></ul>
+      </section>
+      <section class="side-card signup-panel" aria-label="Account">
+        <p class="keys-kicker">Account</p>
+        <div id="account-guest">
+          <h2>Sign in</h2>
+          <p class="signup-lead">Magic link. Same Arcade Engage account as Field Rush and No Brakes.</p>
+          <form id="signup-form" class="signup-form">
+            <input id="signup-email" name="email" type="email" autocomplete="email" maxlength="120" placeholder="you@email.com" required />
+            <button type="submit" class="btn btn-primary" id="btn-signup">Send link</button>
+            <p id="signup-status" class="signup-status"></p>
+          </form>
+        </div>
+        <div id="account-user" class="hidden">
+          <div class="account-head">
+            <button type="button" class="account-avatar" id="btn-avatar" aria-expanded="false" aria-controls="avatar-picker" title="Choose your character">
+              <img id="account-avatar-img" alt="" width="48" height="48" />
+            </button>
+            <div>
+              <h2 id="account-name">Signed in</h2>
+              <p id="account-level" class="account-level"></p>
+            </div>
+          </div>
+          <div id="avatar-picker" class="avatar-picker hidden"></div>
+          <button type="button" class="btn btn-ghost" id="btn-signout">Sign out</button>
+        </div>
+      </section>
+    </aside>
+
+    <div class="game-shell">
+      <header class="hud">
+        <div class="brand">
+          <div>
+            <p class="keys-kicker">Arcade Engage</p>
+            <h1>Scrap Runner</h1>
+            <p id="brand-line">One last scramble through the yard</p>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="hud-actions">
+            <button type="button" id="btn-mute" class="btn btn-ghost btn-mute" aria-pressed="false" aria-label="Mute sound" title="Mute">Mute</button>
+            <button type="button" id="btn-speed" class="btn btn-ghost">Speed x1</button>
+            <button type="button" id="btn-pause" class="btn btn-ghost">Pause</button>
+            <button type="button" id="btn-reset" class="btn btn-ghost">Reset</button>
+          </div>
+          <div class="hud-stats">
+            <div class="stat" title="Lives">
+              <span class="stat-label">Lives</span>
+              <strong id="stat-lives">5</strong>
+            </div>
+            <div class="stat stat-score" title="Score">
+              <span class="stat-label">Score</span>
+              <strong id="stat-score">0</strong>
+            </div>
+            <div class="stat" title="Level">
+              <span class="stat-label">Level</span>
+              <strong id="stat-level">1 / 20</strong>
+            </div>
+            <div class="stat" title="Energy cells">
+              <span class="stat-label">Cells</span>
+              <strong id="stat-cells">0 / 0</strong>
+            </div>
+            <div class="stat" title="Difficulty">
+              <span class="stat-label">Mode</span>
+              <strong id="stat-difficulty">Easy</strong>
+            </div>
+            <div class="stat" title="Players online">
+              <span class="stat-label">Online</span>
+              <strong id="stat-online">–</strong>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="play-field">
+        <div class="stage-wrap">
+          <canvas id="game" width="1024" height="576"></canvas>
+          <div id="tip-banner" class="lead-banner tip-banner hidden"></div>
+          <div id="overlay" class="overlay">
+            <div class="panel">
+              <p class="kicker" id="overlay-kicker">Wasteland · Yard 1</p>
+              <h2 id="overlay-title">Scavenge the yard</h2>
+              <p id="overlay-copy" class="overlay-copy">You are a wasteland scavenger. Each screen is rusted platforms, ladders, and broken walkways. Collect every Energy Cell, then the extraction hatch lights up — reach it before the scrap bots catch you.</p>
+              <p id="overlay-score" class="overlay-score hidden"></p>
+              <div class="difficulty-pick" id="difficulty-pick">
+                <p class="difficulty-label">Difficulty</p>
+                <div class="difficulty-row">
+                  <button type="button" class="btn difficulty-btn selected" data-difficulty="easy">Easy</button>
+                  <button type="button" class="btn difficulty-btn" data-difficulty="medium">Medium</button>
+                  <button type="button" class="btn difficulty-btn" data-difficulty="hard">Hard</button>
+                </div>
+              </div>
+              <form id="score-form" class="score-form hidden">
+                <label for="player-name">Post your score</label>
+                <div class="score-form-row">
+                  <input id="player-name" name="name" maxlength="16" minlength="2" autocomplete="nickname" placeholder="Your name" required />
+                  <button type="submit" class="btn btn-primary" id="btn-post-score">Post</button>
+                </div>
+                <p id="score-status" class="score-status"></p>
+                <button type="button" id="btn-skip-score" class="btn btn-ghost score-skip">Skip</button>
+              </form>
+              <div class="start-actions" id="start-actions">
+                <button type="button" id="btn-start" class="btn btn-primary">Drop in</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="scoreboard" id="scoreboard">
+        <div class="scoreboard-head">
+          <h2>Scoreboard</h2>
+          <p id="scoreboard-status">Live Scrap Runner rankings</p>
+        </div>
+        <div class="board-tabs" id="board-tabs">
+          <button type="button" class="board-tab selected" data-difficulty="easy">Easy</button>
+          <button type="button" class="board-tab" data-difficulty="medium">Medium</button>
+          <button type="button" class="board-tab" data-difficulty="hard">Hard</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Mode</th>
+              <th>Score</th>
+              <th>Level</th>
+              <th>Ver</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="scoreboard-body">
+            <tr><td colspan="7">Connecting…</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <aside class="side-rail" aria-label="Games and keys">
+      <section class="side-card">
+        <p class="keys-kicker">Arcade Engage</p>
+        <a class="news-more" href="https://arcade-engage.vercel.app/">Back to Games</a>
+      </section>
+      <section class="side-card">
+        <p class="keys-kicker">Game Features</p>
+        <button type="button" class="news-more" id="btn-features">View current game features</button>
+      </section>
+      <section class="side-card">
+        <p class="keys-kicker">Keys</p>
+        <ul class="keys-list">
+          <li><span class="keys-combo"><kbd>A</kbd><kbd>←</kbd><kbd>O</kbd></span><span>Left</span></li>
+          <li><span class="keys-combo"><kbd>D</kbd><kbd>→</kbd><kbd>P</kbd></span><span>Right</span></li>
+          <li><span class="keys-combo"><kbd>W</kbd><kbd>↑</kbd></span><span>Climb / jump</span></li>
+          <li><span class="keys-combo"><kbd>S</kbd><kbd>↓</kbd></span><span>Climb down</span></li>
+          <li><span class="keys-combo"><kbd>Space</kbd></span><span>Jump</span></li>
+          <li><span class="keys-combo"><kbd>M</kbd></span><span>Mute</span></li>
+        </ul>
+      </section>
+      <section class="side-card">
+        <p class="keys-kicker">News</p>
+        <ul class="news-list" id="news-list"></ul>
+        <button type="button" class="news-more" id="btn-changelog">View changelog</button>
+      </section>
+    </aside>
+  </div>
+
+  <div id="changelog-overlay" class="overlay changelog-overlay hidden" role="dialog" aria-modal="true">
+    <div class="panel changelog-panel">
+      <button type="button" id="btn-close-changelog" class="overlay-close" aria-label="Close">×</button>
+      <p class="keys-kicker">Scrap Runner</p>
+      <h2>Changelog</h2>
+      <div id="changelog-body" class="changelog-body"></div>
+    </div>
+  </div>
+  <div id="features-overlay" class="overlay changelog-overlay hidden" role="dialog" aria-modal="true">
+    <div class="panel changelog-panel">
+      <button type="button" id="btn-close-features" class="overlay-close" aria-label="Close">×</button>
+      <p class="keys-kicker">Scrap Runner</p>
+      <h2>Game Features</h2>
+      <div id="features-body" class="changelog-body"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
