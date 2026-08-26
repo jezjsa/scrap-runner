@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T12:28:00+01:00",
+    title: "Cells keep their shape",
+    items: [
+      "Energy cells now draw at the sheet’s proportions — tall cans stay tall, long ones stay long. They were being forced into a square",
+    ],
+  },
+  {
     at: "2026-08-26T12:26:00+01:00",
     title: "Over the ledge",
     items: [

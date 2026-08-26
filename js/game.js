@@ -1,5 +1,5 @@
 import { COLS, LEVELS, ROWS, TOTAL_LEVELS } from "./levels.js";
-import { drawSprite, drawSpriteAtHeight, loadArt } from "./sprites.js";
+import { drawSprite, drawSpriteAtHeight, drawSpriteFit, loadArt } from "./sprites.js";
 import { sfx } from "./audio.js";
 
 export const TILE = 32;
@@ -1158,7 +1158,7 @@ function drawWorld(t) {
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
     const frame = art?.cells?.[cell.frame % (art.cells.length || 1)];
-    if (frame) drawSprite(ctx, frame, cell.x - 2, cell.y - 4, 24, 24);
+    if (frame) drawSpriteFit(ctx, frame, cell.x + cell.w / 2, cell.y + cell.h / 2, 30, 30);
     else {
       ctx.fillStyle = "#7ae05a";
       ctx.beginPath();

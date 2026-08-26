@@ -369,3 +369,11 @@ export function drawSpriteAtHeight(ctx, frame, cx, feetY, destH, flip = false, s
   const destW = Math.max(1, Math.round(destH * (frame.width / frame.height)));
   drawSprite(ctx, frame, cx - destW / 2, feetY - destH + sink, destW, destH, flip);
 }
+
+export function drawSpriteFit(ctx, frame, cx, cy, maxW, maxH, flip = false) {
+  if (!frame) return;
+  const scale = Math.min(maxW / frame.width, maxH / frame.height);
+  const destW = Math.max(1, Math.round(frame.width * scale));
+  const destH = Math.max(1, Math.round(frame.height * scale));
+  drawSprite(ctx, frame, cx - destW / 2, cy - destH / 2, destW, destH, flip);
+}
