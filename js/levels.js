@@ -9,7 +9,7 @@ function isLadderChar(ch) {
   return ch === "L" || ch === "+";
 }
 
-function connectLaddersToFloor(grid) {
+function connectLaddersToFloor(grid, onlyCols) {
   const cells = grid.map((row) => row.split(""));
   const floorY = ROWS - 1;
   let firstLedge = -1;
@@ -21,6 +21,7 @@ function connectLaddersToFloor(grid) {
   }
   if (firstLedge < 0) return grid;
   for (let x = 0; x < COLS; x += 1) {
+    if (onlyCols && !onlyCols.includes(x)) continue;
     const onLedge = isLadderChar(cells[firstLedge][x]);
     const aboveLedge = firstLedge > 0 && isLadderChar(cells[firstLedge - 1][x]);
     if (!onLedge && !aboveLedge) continue;
@@ -45,7 +46,7 @@ function punchLaddersThroughLedges(grid) {
   return cells.map((row) => row.join(""));
 }
 
-function pack(name, blurb, raw) {
+function pack(name, blurb, raw, opts = {}) {
   const rows = raw.replace(/^\n/, "").replace(/\n$/, "").split("\n");
   if (rows.length !== ROWS) {
     throw new Error(`${name}: expected ${ROWS} rows, got ${rows.length}`);
@@ -55,7 +56,11 @@ function pack(name, blurb, raw) {
     if (line.length !== COLS) throw new Error(`${name}: bad row ${line}`);
     return line;
   });
-  return { name, blurb, grid: punchLaddersThroughLedges(connectLaddersToFloor(grid)) };
+  return {
+    name,
+    blurb,
+    grid: punchLaddersThroughLedges(connectLaddersToFloor(grid, opts.floorLadderCols)),
+  };
 }
 
 export const LEVELS = [
@@ -74,11 +79,11 @@ export const LEVELS = [
 ...L........................L...
 ...+........................+...
 .S.L.....................H..L...
-===+......................+=====
-...L......................L.....
-...L..C..............C....L.....
+===+.......................=====
+...L............................
+...L..C..............C..........
 ================================
-`),
+`, { floorLadderCols: [3] }),
   pack("Yard 2", "The bots use the ladders too.", `
 ................................
 .C............................C.
