@@ -177,9 +177,9 @@ function showEnd(result) {
   overlay?.classList.remove("hidden");
   overlayTitle.textContent = result.won ? "Extracted" : "Caught in the yard";
   overlayCopy.textContent = result.won
-    ? "Twenty yards. The hatch took you. Post the score."
+    ? "Twenty yards. The vault door took you. Post the score."
     : `You made it to yard ${result.waves}. The bots got the last word.`;
-  overlayKicker.textContent = result.won ? "Hatch locked" : "Run over";
+  overlayKicker.textContent = result.won ? "Door sealed" : "Run over";
   if (overlayScore) {
     overlayScore.textContent = result.score.toLocaleString();
     overlayScore.classList.remove("hidden");

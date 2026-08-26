@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T11:32:00+01:00",
+    title: "The vault door",
+    items: [
+      "A rusted vault door sits bottom-right of each yard — closed until you have every energy cell",
+      "When it opens, walk in. The door shuts and the yard is done",
+    ],
+  },
+  {
     at: "2026-08-26T11:15:00+01:00",
     title: "Live cells",
     items: [

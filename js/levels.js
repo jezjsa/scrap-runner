@@ -418,7 +418,7 @@ export const LEVELS = [
 .........C..........C...........
 ================================
 `),
-  pack("Yard 20", "The guardian keeps the hatch.", `
+  pack("Yard 20", "The guardian keeps the door.", `
 .C............................C.
 ====........................====
 ...L........................L...

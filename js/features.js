@@ -5,7 +5,7 @@ export const FEATURES = [
       "Each level is one screen of rusted platforms, pipe ladders, and walkways",
       "Ladders punch through floors — climb the full column from handle to feet. Every ladder is the same width",
       "Every yard has a ladder from the floor up to the first ledge — Yard 1 has one on both sides",
-      "Collect every Energy Cell — each one sits on a faint pulsing green glow. The extraction hatch then lights up — reach it to clear the yard",
+      "Collect every Energy Cell — each one sits on a faint pulsing green glow. The vault door then opens — walk in to clear the yard",
       "Twenty yards. The layout gets meaner; a new mechanic lands every few screens",
     ],
   },
@@ -42,7 +42,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect. Yard 1 has a crane hook between the mid walkways — jump on, swing, leap off",
+      "Yards 1–3: run, climb, collect. A rusted vault door sits bottom-right of every yard. Yard 1 has a crane hook between the mid walkways — jump on, swing, leap off",
       "Yard 4: moving platforms",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",
@@ -72,7 +72,7 @@ export const FEATURES = [
   {
     title: "UI",
     items: [
-      "Sky, midground, and rusted frame are the Photoshop files as-is. You, the bots, and the cells draw in front of the scrap",
+      "Sky, midground, and rusted frame are the Photoshop files as-is. You, the bots, the cells, and the vault door draw in front of the scrap",
       "Jump uses the leap poses from the sheet. The scavenger stays solid in the air",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",

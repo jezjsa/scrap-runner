@@ -6,6 +6,7 @@ import skyUrl from "../assets/sky.png";
 import midUrl from "../assets/midground.png";
 import frameUrl from "../assets/frame.png";
 import swingUrl from "../assets/swing.png";
+import exitUrl from "../assets/exit.png";
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -114,6 +115,71 @@ function sliceGrid(img, cols, rows) {
     }
   }
   return frames;
+}
+
+function sliceExit(img) {
+  const width = img.width;
+  const height = img.height;
+  const sheet = document.createElement("canvas");
+  sheet.width = width;
+  sheet.height = height;
+  const sheetCtx = sheet.getContext("2d");
+  sheetCtx.drawImage(img, 0, 0);
+  const data = sheetCtx.getImageData(0, 0, width, height).data;
+  const occ = new Array(width).fill(0);
+  for (let x = 0; x < width; x += 1) {
+    for (let y = 0; y < height; y += 1) {
+      if (data[(y * width + x) * 4 + 3] > 20) occ[x] += 1;
+    }
+  }
+  const runs = [];
+  let start = -1;
+  for (let x = 0; x <= width; x += 1) {
+    const solid = x < width && occ[x] >= 8;
+    if (solid && start < 0) start = x;
+    if (!solid && start >= 0) {
+      runs.push({ x0: start, x1: x - 1 });
+      start = -1;
+    }
+  }
+  const doors = runs.filter((run) => run.x1 - run.x0 > 40).slice(0, 3);
+  if (doors.length < 3) return [];
+
+  let minY = height;
+  let maxY = 0;
+  for (const run of doors) {
+    for (let y = 0; y < height; y += 1) {
+      for (let x = run.x0; x <= run.x1; x += 1) {
+        if (data[(y * width + x) * 4 + 3] > 20) {
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+  }
+  const pad = 2;
+  minY = Math.max(0, minY - pad);
+  maxY = Math.min(height - 1, maxY + pad);
+  const frameH = maxY - minY + 1;
+  const frameW = Math.max(...doors.map((run) => run.x1 - run.x0 + 1));
+
+  return doors.map((run) => {
+    const frame = document.createElement("canvas");
+    frame.width = frameW;
+    frame.height = frameH;
+    frame.getContext("2d").drawImage(
+      sheet,
+      run.x0,
+      minY,
+      run.x1 - run.x0 + 1,
+      frameH,
+      0,
+      0,
+      run.x1 - run.x0 + 1,
+      frameH,
+    );
+    return frame;
+  });
 }
 
 function asCanvas(img) {
@@ -251,7 +317,7 @@ function classifyHero(blobs) {
 }
 
 export async function loadArt() {
-  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg] = await Promise.all([
+  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg, exitImg] = await Promise.all([
     loadImage(heroUrl),
     loadImage(enemiesUrl),
     loadImage(cellsUrl),
@@ -260,6 +326,7 @@ export async function loadArt() {
     loadImage(midUrl),
     loadImage(frameUrl),
     loadImage(swingUrl),
+    loadImage(exitUrl),
   ]);
 
   const hero = classifyHero(extractBlobs(heroImg, 4000, { key: false, minAlpha: 40, maxW: 400 }));
@@ -281,6 +348,7 @@ export async function loadArt() {
     cells: cellFrames,
     ladder,
     swing: swingImg,
+    exit: sliceExit(exitImg),
   };
 }
 

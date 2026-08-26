@@ -13,6 +13,10 @@ const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
 const SWING_GRAB = 0.92;
 const SWING_CATCH = 36;
+const DOOR_W = 78;
+const DOOR_H = 132;
+const DOOR_FRAME_T = 0.18;
+const DOOR_HOLD_T = 1.4;
 
 const DIFFICULTIES = {
   easy: { lives: 5, enemy: 0.82, label: "Easy" },
@@ -56,6 +60,9 @@ const state = {
   orbs: [],
   rails: [],
   hatch: null,
+  doorFrame: 0,
+  doorPhase: "shut",
+  doorTimer: 0,
   switchPos: null,
   spawn: { x: 40, y: 400 },
 };
@@ -287,6 +294,9 @@ function parseLevel(index) {
   state.hatch = null;
   state.switchPos = null;
   state.hatchOpen = false;
+  state.doorFrame = 0;
+  state.doorPhase = "shut";
+  state.doorTimer = 0;
   state.gateOpen = false;
   state.cellsGot = 0;
   state.levelAt = now();
@@ -310,7 +320,7 @@ function parseLevel(index) {
         state.spawn = { x: x * TILE + 8, y: y * TILE + 4 };
         setTile(x, y, ".");
       } else if (ch === "H") {
-        state.hatch = { x: x * TILE, y: y * TILE, w: TILE * 2, h: TILE };
+        state.hatch = placeDoor(x, y);
         setTile(x, y, ".");
       } else if (ch === "C") {
         state.cells.push({ x: x * TILE + 6, y: y * TILE + 6, w: 20, h: 20, got: false, frame: (x + y) % 12 });
@@ -382,7 +392,26 @@ function parseLevel(index) {
   }
 
   state.cellsMax = state.cells.length;
+  if (!state.hatch) state.hatch = placeDoor(25, 13);
   state.player = makePlayer(state.spawn.x, state.spawn.y);
+}
+
+function placeDoor(tileX, tileY) {
+  const floorY = beamTop(tileY + 1);
+  const x = tileX * TILE - 8;
+  const y = floorY - DOOR_H + 6;
+  return {
+    x,
+    y,
+    w: DOOR_W,
+    h: DOOR_H,
+    enter: {
+      x: x + 16,
+      y: floorY - 36,
+      w: 36,
+      h: 36,
+    },
+  };
 }
 
 function orderRail(points) {
@@ -611,9 +640,10 @@ function updatePlayer(dt) {
       addScore(120 + state.level * 40);
       sfx.collect();
       if (state.cellsGot >= state.cellsMax) {
-        state.hatchOpen = true;
+        state.doorPhase = "opening";
+        state.doorTimer = 0;
         sfx.hatch();
-        showTip("Hatch is live — get out");
+        showTip("The door is open — get out");
       }
     }
   }
@@ -627,8 +657,8 @@ function updatePlayer(dt) {
     }
   }
 
-  if (state.hatchOpen && state.hatch && overlap(p, state.hatch)) {
-    clearLevel();
+  if (state.doorPhase === "open" && state.hatch && overlap(p, state.hatch.enter)) {
+    beginExit();
     return;
   }
 
@@ -788,19 +818,56 @@ function hurt() {
   hud();
 }
 
-function clearLevel() {
+function beginExit() {
   const elapsed = (now() - state.levelAt) / 1000;
   const bonus = Math.max(0, Math.round((90 - elapsed) * (6 + state.level)));
   addScore(400 + state.level * 80 + bonus);
   sfx.clear();
+  state.phase = "exiting";
+  state.doorPhase = "closing";
+  state.doorTimer = 0;
+  state.hatchOpen = false;
+  hud();
+}
+
+function finishClear() {
   if (state.level >= TOTAL_LEVELS - 1) {
     endRun(true);
     return;
   }
   state.level += 1;
   parseLevel(state.level);
+  state.phase = "play";
   showTip(LEVELS[state.level].blurb, 2600);
   hud();
+}
+
+function updateDoor(dt) {
+  if (state.doorPhase === "opening") {
+    state.doorTimer += dt;
+    if (state.doorTimer >= DOOR_FRAME_T) {
+      state.doorTimer = 0;
+      state.doorFrame = Math.min(2, state.doorFrame + 1);
+      if (state.doorFrame === 2) {
+        state.doorPhase = "open";
+        state.hatchOpen = true;
+      }
+    }
+  } else if (state.doorPhase === "closing") {
+    state.doorTimer += dt;
+    if (state.doorTimer >= DOOR_FRAME_T) {
+      state.doorTimer = 0;
+      state.doorFrame = Math.max(0, state.doorFrame - 1);
+      if (state.doorFrame === 0) {
+        state.doorPhase = "done";
+        state.doorTimer = DOOR_HOLD_T;
+        showTip(`You have completed level ${state.level + 1}`, DOOR_HOLD_T * 1000);
+      }
+    }
+  } else if (state.doorPhase === "done") {
+    state.doorTimer -= dt;
+    if (state.doorTimer <= 0) finishClear();
+  }
 }
 
 function endRun(won) {
@@ -918,6 +985,35 @@ function drawSwing(t) {
   ctx.restore();
 }
 
+function drawDoor() {
+  const door = state.hatch;
+  if (!door) return;
+  const frames = art?.exit;
+  const frame = frames?.[state.doorFrame] || frames?.[0];
+  if (frame) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(frame, door.x, door.y, door.w, door.h);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = state.doorFrame > 0 ? "#3a5a22" : "#2a221c";
+    ctx.fillRect(door.x + 10, door.y + 40, door.w - 20, door.h - 48);
+  }
+}
+
+function drawClearBanner() {
+  if (state.doorPhase !== "done") return;
+  ctx.save();
+  ctx.fillStyle = "rgba(8, 6, 4, 0.58)";
+  ctx.fillRect(WIDTH / 2 - 210, HEIGHT / 2 - 36, 420, 72);
+  ctx.fillStyle = "#e8c8a0";
+  ctx.font = "800 22px Trebuchet MS";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(`You have completed level ${state.level + 1}`, WIDTH / 2, HEIGHT / 2);
+  ctx.restore();
+}
+
 function drawPlatform(x, y, w, h, color = "#6a3a22") {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, w, h);
@@ -981,18 +1077,7 @@ function drawWorld(t) {
     ctx.fillRect(state.switchPos.x + 10, state.switchPos.y + 10, 12, 14);
   }
 
-  if (state.hatch) {
-    const glow = state.hatchOpen;
-    ctx.fillStyle = glow ? "#3a5a22" : "#2a221c";
-    ctx.fillRect(state.hatch.x, state.hatch.y + 8, state.hatch.w, 20);
-    if (glow) {
-      ctx.fillStyle = `rgba(140, 220, 80, ${0.45 + Math.sin(t * 6) * 0.2})`;
-      ctx.fillRect(state.hatch.x + 6, state.hatch.y - 10, state.hatch.w - 12, 18);
-      ctx.fillStyle = "#c8f0a4";
-      ctx.font = "700 10px Trebuchet MS";
-      ctx.fillText("HATCH", state.hatch.x + 6, state.hatch.y + 4);
-    }
-  }
+  if (state.hatch) drawDoor();
 
   for (const cell of state.cells) {
     if (cell.got) continue;
@@ -1045,7 +1130,7 @@ function drawWorld(t) {
   }
 
   const hero = state.player;
-  if (hero) {
+  if (hero && state.phase !== "exiting") {
     const blink = hero.invuln > 0 && Math.floor(hero.invuln * 12) % 2 === 0;
     if (!blink) {
       let frames = art?.hero?.run;
@@ -1085,6 +1170,8 @@ function drawWorld(t) {
     ctx.font = "800 28px Trebuchet MS";
     ctx.fillText("Paused", WIDTH / 2 - 56, HEIGHT / 2);
   }
+
+  drawClearBanner();
 }
 
 function tick(ts) {
@@ -1094,9 +1181,13 @@ function tick(ts) {
   last = ts;
   const dt = raw * state.speed;
   if (state.phase === "play") {
+    updateDoor(dt);
     updateMovers(dt);
     updatePlayer(dt);
     for (const e of state.enemies) updateEnemy(e, dt);
+    hud();
+  } else if (state.phase === "exiting") {
+    updateDoor(dt);
     hud();
   } else if (state.phase === "paused" && state.player?.swinging) {
     attachToSwing(state.player, worldT);
@@ -1163,6 +1254,7 @@ export function startRun() {
 }
 
 export function togglePause() {
+  if (state.phase === "exiting") return true;
   if (state.phase === "play") {
     state.phase = "paused";
     hud();
