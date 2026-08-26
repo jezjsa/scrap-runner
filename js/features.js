@@ -71,7 +71,7 @@ export const FEATURES = [
   {
     title: "UI",
     items: [
-      "Dim wasteland sky sits behind the yard. The rusted frame is the Photoshop file, drawn as a window over the playfield",
+      "Sky, midground, and rusted frame are the Photoshop files as-is. You, the bots, and the cells draw in front of the scrap",
       "Jump uses the leap poses from the sheet. The scavenger stays solid in the air",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",

@@ -694,22 +694,11 @@ function drawPlatform(x, y, w, h, color = "#6a3a22") {
 }
 
 function drawWorld(t) {
-  const p = state.player || { x: WIDTH / 2 };
-  const parallax = (p.x / WIDTH - 0.5);
-  const drift = t * 0.008;
-
   ctx.fillStyle = "#0a0806";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  if (art?.sky) {
-    ctx.globalAlpha = 0.34;
-    ctx.drawImage(art.sky, -24 + parallax * -16 - drift, 0, WIDTH + 48, HEIGHT);
-    ctx.globalAlpha = 1;
-  }
-  if (art?.midground) {
-    ctx.globalAlpha = 0.28;
-    ctx.drawImage(art.midground, -40 + parallax * -34 - drift * 1.6, 8, WIDTH + 80, HEIGHT);
-    ctx.globalAlpha = 1;
-  }
+  if (art?.sky) ctx.drawImage(art.sky, 0, 0, WIDTH, HEIGHT);
+  if (art?.midground) ctx.drawImage(art.midground, 0, 0, WIDTH, HEIGHT);
+  if (art?.frame) ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
 
   for (let y = 0; y < ROWS; y += 1) {
     for (let x = 0; x < COLS; x += 1) {
@@ -819,14 +808,6 @@ function drawWorld(t) {
       }
       const frame = frames?.[frameIndex % (frames?.length || 1)];
       if (frame) {
-        const hx = hero.x + hero.w / 2;
-        const hy = hero.y + hero.h / 2;
-        ctx.save();
-        ctx.fillStyle = "rgba(255, 214, 160, 0.22)";
-        ctx.beginPath();
-        ctx.ellipse(hx, hy, 18, 22, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
         drawSprite(ctx, frame, hero.x - 14, hero.y - 16, 48, 52, hero.dir < 0);
       }
       else {
@@ -834,10 +815,6 @@ function drawWorld(t) {
         ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
       }
     }
-  }
-
-  if (art?.frame) {
-    ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
   }
 
   const def = LEVELS[state.level];

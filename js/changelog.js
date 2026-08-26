@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T09:44:00+01:00",
+    title: "In front of the scrap again",
+    items: [
+      "You stand in front of the rusted frame’s rocks and crates — the sky and midground are the files as-is, with no fade",
+    ],
+  },
+  {
     at: "2026-08-26T09:36:00+01:00",
     title: "Climb without a ghost ladder",
     items: [
