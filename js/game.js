@@ -6,9 +6,6 @@ export const TILE = 32;
 export const WIDTH = COLS * TILE;
 export const HEIGHT = ROWS * TILE;
 
-const SWING_PIVOT_X = WIDTH / 2;
-const SWING_PIVOT_Y = 2;
-const SWING_LEN = 152;
 const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
 const SWING_GRAB = 0.92;
@@ -61,6 +58,7 @@ const state = {
   orbs: [],
   rails: [],
   hatch: null,
+  swing: null,
   doorFrame: 0,
   doorPhase: "shut",
   doorTimer: 0,
@@ -399,6 +397,7 @@ function parseLevel(index) {
   state.orbs = [];
   state.rails = [];
   state.hatch = null;
+  state.swing = null;
   state.switchPos = null;
   state.hatchOpen = false;
   state.doorFrame = 0;
@@ -431,6 +430,13 @@ function parseLevel(index) {
         setTile(x, y, ".");
       } else if (ch === "C") {
         state.cells.push({ x: x * TILE + 6, y: y * TILE + 6, w: 20, h: 20, got: false, frame: (x + y) % 12 });
+        setTile(x, y, ".");
+      } else if (ch === "T") {
+        state.swing = {
+          pivotX: x * TILE + TILE / 2,
+          pivotY: 2,
+          len: Math.max(110, y * TILE + 16 - 2),
+        };
         setTile(x, y, ".");
       } else if (ch === "W") {
         state.switchPos = { x: x * TILE, y: y * TILE };
@@ -1057,7 +1063,7 @@ function endRun(won) {
 }
 
 function yardHasSwing() {
-  return state.level === 0;
+  return Boolean(state.swing);
 }
 
 function swingAngle(t) {
@@ -1072,15 +1078,17 @@ function swingTravelDir(t) {
 
 function swingSize() {
   const img = art?.swing;
-  const destH = SWING_LEN;
+  const destH = state.swing?.len ?? 152;
   const destW = img ? Math.max(22, Math.round(img.width * (destH / img.height))) : 22;
   return { destW, destH };
 }
 
 function swingPoint(angle, along) {
+  const pivotX = state.swing?.pivotX ?? WIDTH / 2;
+  const pivotY = state.swing?.pivotY ?? 2;
   return {
-    x: SWING_PIVOT_X - Math.sin(angle) * along,
-    y: SWING_PIVOT_Y + Math.cos(angle) * along,
+    x: pivotX - Math.sin(angle) * along,
+    y: pivotY + Math.cos(angle) * along,
   };
 }
 
@@ -1171,7 +1179,7 @@ function drawSwing(t) {
   const angle = swingAngle(t);
   ctx.save();
   ctx.imageSmoothingEnabled = true;
-  ctx.translate(SWING_PIVOT_X, SWING_PIVOT_Y);
+  ctx.translate(state.swing?.pivotX ?? WIDTH / 2, state.swing?.pivotY ?? 2);
   ctx.rotate(angle);
   ctx.drawImage(img, -destW / 2, 0, destW, destH);
   ctx.restore();
