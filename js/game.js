@@ -1224,12 +1224,19 @@ function drawPlatform(x, y, w, h, color = "#6a3a22") {
 }
 
 function drawWorld(t) {
-  if (art?.sky) ctx.drawImage(art.sky, 0, 0, WIDTH, HEIGHT);
-  else {
+  const p = state.player || { x: WIDTH / 2 };
+  const parallax = p.x / WIDTH - 0.5;
+  const drift = t * 0.008;
+
+  if (art?.sky) {
+    ctx.drawImage(art.sky, -24 + parallax * -16 - drift, 0, WIDTH + 48, HEIGHT);
+  } else {
     ctx.fillStyle = "#141210";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   }
-  if (art?.midground) ctx.drawImage(art.midground, 0, 0, WIDTH, HEIGHT);
+  if (art?.midground) {
+    ctx.drawImage(art.midground, -40 + parallax * -34 - drift * 1.6, 8, WIDTH + 80, HEIGHT);
+  }
   if (art?.frame) ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
 
   for (let y = 0; y < ROWS; y += 1) {
