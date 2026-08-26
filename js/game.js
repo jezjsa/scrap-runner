@@ -19,8 +19,8 @@ const DOOR_FRAME_T = 0.18;
 const DOOR_HOLD_T = 1.4;
 
 const DIFFICULTIES = {
-  easy: { lives: 5, enemy: 0.82, label: "Easy" },
-  medium: { lives: 4, enemy: 1, label: "Medium" },
+  easy: { lives: 3, enemy: 0.82, label: "Easy" },
+  medium: { lives: 3, enemy: 1, label: "Medium" },
   hard: { lives: 3, enemy: 1.22, label: "Hard" },
 };
 
@@ -40,7 +40,7 @@ const state = {
   difficulty: "easy",
   speed: 1,
   level: 0,
-  lives: 5,
+  lives: 3,
   score: 0,
   extraAt: 10000,
   cellsGot: 0,

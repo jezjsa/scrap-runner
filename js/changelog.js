@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T12:04:00+01:00",
+    title: "Three lives",
+    items: [
+      "You start each run with 3 lives on Easy, Medium, and Hard",
+    ],
+  },
+  {
     at: "2026-08-26T12:02:00+01:00",
     title: "A climb in the middle",
     items: [

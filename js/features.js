@@ -13,7 +13,7 @@ export const FEATURES = [
     title: "Modes",
     items: [
       "Easy, Medium, Hard",
-      "Easy: 5 lives, slower bots. Medium: 4 lives. Hard: 3 lives and faster machines",
+      "3 lives on every mode. Easy: slower bots. Medium: normal. Hard: faster machines",
       "Speed x1 / x2",
       "Mute (button or M), Pause, Reset",
     ],
