@@ -9,9 +9,10 @@ export const HEIGHT = ROWS * TILE;
 const SWING_PIVOT_X = WIDTH / 2;
 const SWING_PIVOT_Y = 2;
 const SWING_LEN = 152;
-const SWING_AMP = 0.55;
+const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
-const SWING_GRAB = 0.9;
+const SWING_GRAB = 0.92;
+const SWING_CATCH = 36;
 
 const DIFFICULTIES = {
   easy: { lives: 5, enemy: 0.82, label: "Easy" },
@@ -488,10 +489,8 @@ function updatePlayer(dt) {
       } else {
         attachToSwing(p, worldT);
       }
-    } else if (p.swingLock <= 0 && nearHook(p, swingHook(worldT))) {
-      p.swinging = true;
-      p.swingArmed = !hop;
-      attachToSwing(p, worldT);
+    } else {
+      tryGrabSwing(p);
     }
   } else {
     p.swinging = false;
@@ -595,6 +594,7 @@ function updatePlayer(dt) {
 
   moveAxis(p, p.vx * dt, 0);
   moveAxis(p, 0, p.vy * dt);
+  if (!p.swinging && !leapedFromSwing) tryGrabSwing(p);
   if (p.y > HEIGHT + 40) hurt();
 
   if (p.sliding) p.anim += dt * 14;
@@ -844,10 +844,40 @@ function swingHook(t) {
   };
 }
 
-function nearHook(p, hook) {
-  const cx = p.x + p.w / 2;
-  const cy = p.y + p.h * 0.35;
-  return Math.abs(cx - hook.x) < 24 && Math.abs(cy - hook.y) < 26;
+function distToSegment(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy || 1;
+  const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+function nearSwing(p, t) {
+  const angle = swingAngle(t);
+  const { destH } = swingSize();
+  const x1 = SWING_PIVOT_X + Math.sin(angle) * destH * 0.55;
+  const y1 = SWING_PIVOT_Y + Math.cos(angle) * destH * 0.55;
+  const x2 = SWING_PIVOT_X + Math.sin(angle) * destH;
+  const y2 = SWING_PIVOT_Y + Math.cos(angle) * destH;
+  const probes = [
+    [p.x + p.w / 2, p.y + 4],
+    [p.x + p.w / 2, p.y + p.h / 2],
+    [p.x + p.w / 2, p.y + p.h - 4],
+    [p.x + 2, p.y + 8],
+    [p.x + p.w - 2, p.y + 8],
+  ];
+  for (const [px, py] of probes) {
+    if (distToSegment(px, py, x1, y1, x2, y2) < SWING_CATCH) return true;
+  }
+  return false;
+}
+
+function tryGrabSwing(p) {
+  if (!yardHasSwing() || p.swinging || p.swingLock > 0) return;
+  if (!nearSwing(p, worldT)) return;
+  p.swinging = true;
+  p.swingArmed = !keys.has(" ");
+  attachToSwing(p, worldT);
 }
 
 function attachToSwing(p, t) {
