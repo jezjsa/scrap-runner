@@ -815,15 +815,24 @@ function drawWorld(t) {
     const blink = hero.invuln > 0 && Math.floor(hero.invuln * 12) % 2 === 0;
     if (!blink) {
       let frames = art?.hero?.run;
-      if (hero.climbing) frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-      else if (!hero.onGround) frames = art?.hero?.jump?.length ? art.hero.jump : frames;
-      const frame = frames?.[Math.floor(hero.anim) % (frames?.length || 1)];
+      let frameIndex = Math.floor(hero.anim);
+      if (hero.climbing) {
+        frames = art?.hero?.climb?.length ? art.hero.climb : frames;
+      } else if (!hero.onGround && art?.hero?.jump?.length) {
+        frames = art.hero.jump;
+        frameIndex = hero.vy < 0 ? Math.min(1, frames.length - 1) : 0;
+      }
+      const frame = frames?.[frameIndex % (frames?.length || 1)];
       if (frame) {
+        const hx = hero.x + hero.w / 2;
+        const hy = hero.y + hero.h / 2;
         ctx.save();
-        ctx.shadowColor = "rgba(255, 214, 160, 0.7)";
-        ctx.shadowBlur = 10;
-        drawSprite(ctx, frame, hero.x - 14, hero.y - 16, 48, 52, hero.dir < 0);
+        ctx.fillStyle = "rgba(255, 214, 160, 0.22)";
+        ctx.beginPath();
+        ctx.ellipse(hx, hy, 18, 22, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
+        drawSprite(ctx, frame, hero.x - 14, hero.y - 16, 48, 52, hero.dir < 0);
       }
       else {
         ctx.fillStyle = "#6a7a3a";

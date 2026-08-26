@@ -16,7 +16,7 @@ function loadImage(src) {
 }
 
 function isBackdrop(data, i) {
-  return data[i] < 16 && data[i + 1] < 16 && data[i + 2] < 16;
+  return data[i] < 8 && data[i + 1] < 8 && data[i + 2] < 8;
 }
 
 function keyBackdrop(ctx, width, height) {
