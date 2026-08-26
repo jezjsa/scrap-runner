@@ -42,7 +42,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you",
+      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3’s top walkways sit low enough that you stay on screen",
       "Yard 4: moving platforms",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",
