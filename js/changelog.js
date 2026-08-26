@@ -1,5 +1,19 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T10:18:00+01:00",
+    title: "A climb on both sides",
+    items: [
+      "Yard 1 now has a rusted ladder from the floor up to the first ledge on the left and the right",
+    ],
+  },
+  {
+    at: "2026-08-26T10:14:00+01:00",
+    title: "Stand still",
+    items: [
+      "The scavenger no longer runs on the spot when you let go — he stands, then runs only when you move",
+    ],
+  },
+  {
     at: "2026-08-26T10:12:00+01:00",
     title: "A climb from the floor",
     items: [

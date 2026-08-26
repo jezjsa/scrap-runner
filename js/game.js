@@ -361,6 +361,7 @@ function makePlayer(x, y) {
     dir: 1,
     onGround: false,
     climbing: false,
+    walking: false,
     invuln: 1.1,
     frame: 0,
     anim: 0,
@@ -438,6 +439,7 @@ function updatePlayer(dt) {
     if (left) p.dir = -1;
     if (right) p.dir = 1;
     if ((left || right) && p.onGround && !up && !down) p.climbing = false;
+    p.walking = false;
   } else {
     p.climbing = false;
   }
@@ -445,6 +447,7 @@ function updatePlayer(dt) {
   if (!p.climbing) {
     const walk = 140;
     p.vx = 0;
+    p.walking = left || right;
     if (left) {
       p.vx = -walk;
       p.dir = -1;
@@ -468,7 +471,9 @@ function updatePlayer(dt) {
   moveAxis(p, 0, p.vy * dt);
   if (p.y > HEIGHT + 40) hurt();
 
-  p.anim += dt * (p.climbing ? 8 : Math.abs(p.vx) > 20 ? 10 : 4);
+  if (p.climbing) p.anim += dt * 8;
+  else if (p.walking) p.anim += dt * 10;
+  else if (p.onGround) p.anim += dt * 2;
   p.invuln = Math.max(0, p.invuln - dt);
 
   for (const cell of state.cells) {
@@ -807,6 +812,9 @@ function drawWorld(t) {
       } else if (!hero.onGround && art?.hero?.jump?.length) {
         frames = art.hero.jump;
         frameIndex = hero.vy < 0 ? Math.min(1, frames.length - 1) : 0;
+      } else if (!hero.walking) {
+        frames = art?.hero?.idle?.length ? art.hero.idle : frames;
+        if (!art?.hero?.idle?.length) frameIndex = 0;
       }
       const frame = frames?.[frameIndex % (frames?.length || 1)];
       if (frame) {

@@ -205,14 +205,16 @@ function classifyHero(blobs) {
     if (!last || blob.y > last[0].y + 140) rows.push([blob]);
     else last.push(blob);
   }
-  const run = (rows[0] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas);
+  const top = (rows[0] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas);
+  const idle = top.slice(0, 2);
+  const run = top.slice(2);
   const mid = (rows[1] || []).sort((a, b) => a.x - b.x);
   const jump = mid.slice(0, 2).map((row) => row.canvas);
   const climb = [
     ...mid.slice(2).map((row) => row.canvas),
     ...(rows[2] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas),
   ];
-  return { run, jump, climb };
+  return { idle, run, jump, climb };
 }
 
 export async function loadArt() {
