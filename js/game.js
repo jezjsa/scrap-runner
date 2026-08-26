@@ -127,9 +127,15 @@ function supportedAt(px, py) {
   return floorY(px, py - 4, py + 2) != null;
 }
 
+function ladderSamples(body) {
+  return {
+    xs: [body.x + 2, body.x + body.w / 2, body.x + body.w - 2],
+    ys: [body.y + 4, body.y + body.h / 2, body.y + body.h - 2, body.y + body.h + 6],
+  };
+}
+
 function onLadder(body) {
-  const xs = [body.x + 2, body.x + body.w / 2, body.x + body.w - 2];
-  const ys = [body.y + 4, body.y + body.h / 2, body.y + body.h - 2, body.y + body.h + 6];
+  const { xs, ys } = ladderSamples(body);
   for (const x of xs) {
     for (const y of ys) {
       if (isLadder(tileAt(Math.floor(x / TILE), Math.floor(y / TILE)))) return true;
@@ -139,7 +145,27 @@ function onLadder(body) {
 }
 
 function ladderCol(body) {
-  return Math.floor((body.x + body.w / 2) / TILE);
+  const midX = body.x + body.w / 2;
+  const { ys } = ladderSamples(body);
+  let best = Math.floor(midX / TILE);
+  let bestDist = Infinity;
+  const tx0 = Math.floor(body.x / TILE) - 1;
+  const tx1 = Math.floor((body.x + body.w) / TILE) + 1;
+  for (let tx = tx0; tx <= tx1; tx += 1) {
+    for (const y of ys) {
+      if (!isLadder(tileAt(tx, Math.floor(y / TILE)))) continue;
+      const dist = Math.abs(midX - (tx * TILE + TILE / 2));
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = tx;
+      }
+    }
+  }
+  return best;
+}
+
+function snapToLadder(p) {
+  p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
 }
 
 function eachLadderRun(fn) {
@@ -461,7 +487,7 @@ function updatePlayer(dt) {
       p.climbing = true;
       p.vy = -110;
       p.vx = 0;
-      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      snapToLadder(p);
       p.walking = false;
     } else if ((hop || p.sliding) && !onSolidFloor) {
       p.climbing = true;
@@ -469,7 +495,7 @@ function updatePlayer(dt) {
       p.walking = false;
       p.vx = 0;
       p.vy = 280;
-      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      snapToLadder(p);
       if (left) p.dir = -1;
       if (right) p.dir = 1;
     } else {
@@ -477,7 +503,7 @@ function updatePlayer(dt) {
       p.climbing = true;
       p.vy = 0;
       p.vx = 0;
-      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      snapToLadder(p);
       if (down) p.vy = 110;
       if (left) p.dir = -1;
       if (right) p.dir = 1;

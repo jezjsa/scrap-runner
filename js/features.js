@@ -22,7 +22,7 @@ export const FEATURES = [
     title: "Moving around",
     items: [
       "Walk with A / D, arrows, or O / P. Let go and he stands still — no running on the spot",
-      "Climb ladders with up / down. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone drops you until you grab with up / W",
+      "Climb ladders with up / down. Jumping onto a ladder pulls you onto the pipes. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone drops you until you grab with up / W",
       "Climb poses are just the scavenger — the rusted pipe ladder is in the yard, not on the sprite. Hang still when you are not moving",
       "Touch a scrap bot, drone, crawler, hunter, orb, crusher, or a live floor and you lose a life",
     ],
