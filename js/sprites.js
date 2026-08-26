@@ -309,10 +309,8 @@ function classifyHero(blobs) {
   const run = top.slice(2);
   const mid = (rows[1] || []).sort((a, b) => a.x - b.x);
   const jump = mid.slice(0, 2).map((row) => row.canvas);
-  const climb = [
-    ...mid.slice(2).map((row) => row.canvas),
-    ...(rows[2] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas),
-  ];
+  // Bottom row is jump / hang / sit — do not cycle those on a ladder.
+  const climb = mid.slice(2).map((row) => row.canvas);
   return { idle, run, jump, climb };
 }
 
