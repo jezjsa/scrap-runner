@@ -421,7 +421,6 @@ function updatePlayer(dt) {
   const jump = hop || up;
 
   p.riding = null;
-  p.sliding = false;
   p.onGround = supportedAt(p.x + 2, p.y + p.h + 1) || supportedAt(p.x + p.w - 2, p.y + p.h + 1);
   for (const plat of state.movers) {
     if (p.x + p.w > plat.x && p.x < plat.x + plat.w && Math.abs(p.y + p.h - plat.y) < 6 && p.vy >= 0) {
@@ -440,7 +439,13 @@ function updatePlayer(dt) {
     }
   }
 
-  if (onLadder(p) && (up || down || p.climbing)) {
+  const feetCh = tileAt(
+    Math.floor((p.x + p.w / 2) / TILE),
+    Math.floor((p.y + p.h + 1) / TILE),
+  );
+  const onSolidFloor = p.onGround && feetCh !== "+" && feetCh !== "L";
+
+  if (onLadder(p) && (up || down || p.climbing || p.sliding)) {
     if (hop && (left || right)) {
       p.climbing = false;
       p.sliding = false;
@@ -451,27 +456,37 @@ function updatePlayer(dt) {
       p.onGround = false;
       p.x += p.dir * 10;
       sfx.jump();
-    } else if (hop && !up) {
+    } else if (up) {
+      p.sliding = false;
+      p.climbing = true;
+      p.vy = -110;
+      p.vx = 0;
+      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      p.walking = false;
+    } else if ((hop || p.sliding) && !onSolidFloor) {
       p.climbing = true;
       p.sliding = true;
       p.walking = false;
       p.vx = 0;
       p.vy = 280;
       p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      if (left) p.dir = -1;
+      if (right) p.dir = 1;
     } else {
+      p.sliding = false;
       p.climbing = true;
       p.vy = 0;
       p.vx = 0;
       p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
-      if (up) p.vy = -110;
       if (down) p.vy = 110;
       if (left) p.dir = -1;
       if (right) p.dir = 1;
-      if ((left || right) && p.onGround && !up && !down) p.climbing = false;
+      if ((left || right) && p.onGround && !down) p.climbing = false;
       p.walking = false;
     }
   } else {
     p.climbing = false;
+    p.sliding = false;
   }
 
   if (!p.climbing) {

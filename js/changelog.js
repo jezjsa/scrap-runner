@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T10:34:00+01:00",
+    title: "Drop until you grab",
+    items: [
+      "Space on a ladder starts a fall — he keeps dropping until you climb again with up / W",
+    ],
+  },
+  {
     at: "2026-08-26T10:30:00+01:00",
     title: "One ladder width",
     items: [
