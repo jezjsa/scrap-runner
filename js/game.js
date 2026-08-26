@@ -320,7 +320,7 @@ function parseLevel(index) {
         state.spawn = { x: x * TILE + 8, y: y * TILE + 4 };
         setTile(x, y, ".");
       } else if (ch === "H") {
-        state.hatch = placeDoor(x, y);
+        state.hatch = placeDoor(y);
         setTile(x, y, ".");
       } else if (ch === "C") {
         state.cells.push({ x: x * TILE + 6, y: y * TILE + 6, w: 20, h: 20, got: false, frame: (x + y) % 12 });
@@ -392,13 +392,13 @@ function parseLevel(index) {
   }
 
   state.cellsMax = state.cells.length;
-  if (!state.hatch) state.hatch = placeDoor(25, 13);
+  if (!state.hatch) state.hatch = placeDoor(13);
   state.player = makePlayer(state.spawn.x, state.spawn.y);
 }
 
-function placeDoor(tileX, tileY) {
+function placeDoor(tileY) {
   const floorY = beamTop(tileY + 1);
-  const x = tileX * TILE - 8;
+  const x = WIDTH - DOOR_W - 2;
   const y = floorY - DOOR_H + 6;
   return {
     x,
