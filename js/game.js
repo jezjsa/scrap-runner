@@ -831,16 +831,24 @@ function swingSize() {
   return { destW, destH };
 }
 
+function swingPoint(angle, along) {
+  return {
+    x: SWING_PIVOT_X - Math.sin(angle) * along,
+    y: SWING_PIVOT_Y + Math.cos(angle) * along,
+  };
+}
+
 function swingHook(t) {
   const { destW, destH } = swingSize();
   const angle = swingAngle(t);
   const grab = destH * SWING_GRAB;
+  const pos = swingPoint(angle, grab);
   return {
     angle,
     destW,
     destH,
-    x: SWING_PIVOT_X + Math.sin(angle) * grab,
-    y: SWING_PIVOT_Y + Math.cos(angle) * grab,
+    x: pos.x,
+    y: pos.y,
   };
 }
 
@@ -852,13 +860,16 @@ function distToSegment(px, py, x1, y1, x2, y2) {
   return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
 }
 
-function nearSwing(p, t) {
+function swingGrabSegment(t) {
   const angle = swingAngle(t);
   const { destH } = swingSize();
-  const x1 = SWING_PIVOT_X + Math.sin(angle) * destH * 0.55;
-  const y1 = SWING_PIVOT_Y + Math.cos(angle) * destH * 0.55;
-  const x2 = SWING_PIVOT_X + Math.sin(angle) * destH;
-  const y2 = SWING_PIVOT_Y + Math.cos(angle) * destH;
+  const a = swingPoint(angle, destH * 0.55);
+  const b = swingPoint(angle, destH);
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+}
+
+function nearSwing(p, t) {
+  const { x1, y1, x2, y2 } = swingGrabSegment(t);
   const probes = [
     [p.x + p.w / 2, p.y + 4],
     [p.x + p.w / 2, p.y + p.h / 2],
@@ -904,6 +915,35 @@ function drawSwing(t) {
   ctx.translate(SWING_PIVOT_X, SWING_PIVOT_Y);
   ctx.rotate(angle);
   ctx.drawImage(img, -destW / 2, 0, destW, destH);
+  ctx.restore();
+  drawSwingGrab(t);
+}
+
+function drawSwingGrab(t) {
+  const { x1, y1, x2, y2 } = swingGrabSegment(t);
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "rgba(232, 168, 80, 0.22)";
+  ctx.lineWidth = SWING_CATCH * 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255, 214, 130, 0.5)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPlayerHitbox(p) {
+  if (!p || !yardHasSwing()) return;
+  ctx.save();
+  ctx.strokeStyle = p.swinging ? "rgba(140, 220, 120, 0.7)" : "rgba(120, 200, 230, 0.45)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(p.x + 0.5, p.y + 0.5, p.w - 1, p.h - 1);
   ctx.restore();
 }
 
@@ -1045,6 +1085,7 @@ function drawWorld(t) {
         ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
       }
     }
+    drawPlayerHitbox(hero);
   }
 
   const def = LEVELS[state.level];

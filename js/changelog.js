@@ -1,5 +1,19 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T11:10:00+01:00",
+    title: "On the rope",
+    items: [
+      "The crane grab area now sits on the rope itself — it was swinging the wrong way from the graphic",
+    ],
+  },
+  {
+    at: "2026-08-26T11:08:00+01:00",
+    title: "See the catch",
+    items: [
+      "Yard 1 shows a faint amber band on the crane rope — that’s the grab area, for testing. His real hitbox is the thin blue box",
+    ],
+  },
+  {
     at: "2026-08-26T10:59:00+01:00",
     title: "Catch the rope",
     items: [
