@@ -375,8 +375,8 @@ function parseLevel(index) {
       } else if (ch === "W") {
         state.switchPos = { x: x * TILE, y: y * TILE };
         setTile(x, y, ".");
-      } else if (ch === "B" || ch === "R" || ch === "D" || ch === "X" || ch === "U") {
-        const kind = ch === "B" ? "bot" : ch === "R" ? "rat" : ch === "D" ? "drone" : ch === "U" ? "guardian" : "hunter";
+      } else if (ch === "B" || ch === "R" || ch === "D" || ch === "X" || ch === "U" || ch === "F") {
+        const kind = ch === "B" ? "bot" : ch === "R" ? "rat" : ch === "D" ? "drone" : ch === "U" ? "guardian" : ch === "F" ? "crawler" : "hunter";
         const big = kind === "guardian";
         const rat = kind === "rat";
         state.enemies.push({

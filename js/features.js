@@ -32,9 +32,9 @@ export const FEATURES = [
     items: [
       "Scrap Bot — walks platforms and uses ladders. Drawn a bit larger so you can see them coming",
       "Scrap Rat — scurries one walkway and turns at the edge. Yard 3 has a few on the mid ledges",
-      "Crawler — patrols one platform and turns at the edge",
+      "Crawler — four-legged scrap spider. Patrols one platform and turns at the edge. Yard 4 has them on the top walkways",
       "Drone — flies a horizontal beat across gaps (from yard 8)",
-      "Hunter Bot — sometimes picks a route toward you",
+      "Hunter Bot — sometimes picks a route toward you. First shows up on Yard 4",
       "Magnetic Orb — rides a rail around the yard",
       "Crusher — a piston, not a thinker",
       "Yard 20 has a larger guardian in the middle of the scramble",
@@ -44,7 +44,7 @@ export const FEATURES = [
     title: "Kit that shows up later",
     items: [
       "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3’s top walkways sit low enough that you stay on screen, and scrap rats patrol the mid ledges",
-      "Yard 4: moving platforms",
+      "Yard 4: moving platforms, plus a walker, a hunter, and spider crawlers from the enemy sheet",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",
       "Yard 10: switches open gates",
