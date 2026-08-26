@@ -125,8 +125,70 @@ function keyFull(img) {
   return canvas;
 }
 
+function extractBlobs(img, minArea = 180) {
+  const sheet = keyFull(img);
+  const ctx = sheet.getContext("2d");
+  const { width, height } = sheet;
+  const image = ctx.getImageData(0, 0, width, height);
+  const data = image.data;
+  const seen = new Uint8Array(width * height);
+  const blobs = [];
+
+  const solid = (p) => data[p * 4 + 3] > 12;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const start = y * width + x;
+      if (seen[start] || !solid(start)) continue;
+      const stack = [start];
+      seen[start] = 1;
+      let minX = x;
+      let minY = y;
+      let maxX = x;
+      let maxY = y;
+      let area = 0;
+      while (stack.length) {
+        const p = stack.pop();
+        area += 1;
+        const px = p % width;
+        const py = (p - px) / width;
+        if (px < minX) minX = px;
+        if (py < minY) minY = py;
+        if (px > maxX) maxX = px;
+        if (py > maxY) maxY = py;
+        const next = [p + 1, p - 1, p + width, p - width];
+        for (const n of next) {
+          if (n < 0 || n >= width * height) continue;
+          const nx = n % width;
+          if (Math.abs(nx - px) > 1) continue;
+          if (seen[n] || !solid(n)) continue;
+          seen[n] = 1;
+          stack.push(n);
+        }
+      }
+      if (area < minArea) continue;
+      const piece = document.createElement("canvas");
+      piece.width = maxX - minX + 1;
+      piece.height = maxY - minY + 1;
+      piece.getContext("2d").drawImage(
+        sheet,
+        minX,
+        minY,
+        piece.width,
+        piece.height,
+        0,
+        0,
+        piece.width,
+        piece.height,
+      );
+      blobs.push({ canvas: piece, w: piece.width, h: piece.height, area });
+    }
+  }
+  return blobs.sort((a, b) => a.h - b.h || a.w - b.w);
+}
+
 export async function loadArt() {
-  const [heroImg, enemyImg, cellImg, ladderImg, sky, mid, frameImg] = await Promise.all([
+  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg] = await Promise.all([
     loadImage(heroUrl),
     loadImage(enemiesUrl),
     loadImage(cellsUrl),
@@ -139,12 +201,20 @@ export async function loadArt() {
   const heroFrames = sliceGrid(heroImg, 8, 3);
   const enemyFrames = sliceGrid(enemyImg, 4, 4);
   const cellFrames = sliceGrid(cellImg, 4, 3);
-  const ladderPieces = sliceGrid(ladderImg, 5, 2);
-  const ladders = [...ladderPieces].sort((a, b) => b.height - a.height);
+  const blobs = extractBlobs(ladderImg);
+  const byH = [...blobs].sort((a, b) => a.h - b.h);
+  const tallest = byH[byH.length - 1];
+  const pieces = byH.filter((row) => !tallest || row.h < tallest.h * 0.42);
+  const top = [...pieces].sort((a, b) => b.w / b.h - a.w / a.h)[0] || pieces[0];
+  const leftover = pieces.filter((row) => row !== top);
+  leftover.sort((a, b) => b.h - a.h);
+  const mid = leftover[0] || top;
+  const base = leftover.find((row) => row !== mid) || leftover[1] || mid;
+  const full = tallest;
 
   return {
     sky,
-    mid,
+    midground: midgroundImg,
     frame: keyFull(frameImg),
     hero: {
       run: heroFrames.slice(0, 8),
@@ -158,8 +228,12 @@ export async function loadArt() {
       rat: enemyFrames.slice(12, 16),
     },
     cells: cellFrames,
-    ladder: ladders[0] || ladderPieces[0],
-    ladderMid: ladders[ladders.length - 1] || ladderPieces[1],
+    ladder: {
+      top: top?.canvas || null,
+      mid: mid?.canvas || null,
+      base: base?.canvas || null,
+      full: full?.canvas || null,
+    },
   };
 }
 

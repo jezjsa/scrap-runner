@@ -1,5 +1,14 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T09:20:00+01:00",
+    title: "Ladders you can see",
+    items: [
+      "Rusted pipe ladders now run the full height between floors, with a handle at the top and feet at the base",
+      "Yard 1, 4, and 6 have ladders punching through the walkways so every cell is reachable",
+      "The wasteland backdrop is dimmer, and the scavenger reads brighter against the scrap",
+    ],
+  },
+  {
     at: "2026-08-26T09:08:00+01:00",
     title: "In front of the scrap",
     items: [

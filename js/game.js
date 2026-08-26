@@ -127,11 +127,73 @@ function supportedAt(px, py) {
 }
 
 function onLadder(body) {
-  const cx = body.x + body.w / 2;
-  const y0 = body.y + 4;
-  const y1 = body.y + body.h - 2;
-  return isLadder(tileAt(Math.floor(cx / TILE), Math.floor(y0 / TILE)))
-    || isLadder(tileAt(Math.floor(cx / TILE), Math.floor(y1 / TILE)));
+  const xs = [body.x + 2, body.x + body.w / 2, body.x + body.w - 2];
+  const ys = [body.y + 4, body.y + body.h / 2, body.y + body.h - 2, body.y + body.h + 6];
+  for (const x of xs) {
+    for (const y of ys) {
+      if (isLadder(tileAt(Math.floor(x / TILE), Math.floor(y / TILE)))) return true;
+    }
+  }
+  return false;
+}
+
+function ladderCol(body) {
+  return Math.floor((body.x + body.w / 2) / TILE);
+}
+
+function eachLadderRun(fn) {
+  for (let x = 0; x < COLS; x += 1) {
+    let y = 0;
+    while (y < ROWS) {
+      if (!isLadder(tileAt(x, y))) {
+        y += 1;
+        continue;
+      }
+      const y0 = y;
+      while (y < ROWS && isLadder(tileAt(x, y))) y += 1;
+      fn(x, y0, y);
+    }
+  }
+}
+
+function drawLadderRun(col, y0, y1) {
+  const destW = 30;
+  const x = col * TILE + (TILE - destW) / 2;
+  const topY = y0 * TILE;
+  const botY = y1 * TILE;
+  const kit = art?.ladder;
+  ctx.imageSmoothingEnabled = false;
+  if (kit?.mid && kit?.top && kit?.base) {
+    const topH = Math.round(destW * (kit.top.height / kit.top.width));
+    const baseH = Math.round(destW * (kit.base.height / kit.base.width));
+    const midH = Math.max(18, Math.round(destW * (kit.mid.height / kit.mid.width)));
+    ctx.drawImage(kit.top, x, topY, destW, topH);
+    for (let y = topY + topH - 2; y < botY - baseH; y += midH - 2) {
+      ctx.drawImage(kit.mid, x, y, destW, midH);
+    }
+    ctx.drawImage(kit.base, x, botY - baseH, destW, baseH);
+    return;
+  }
+  if (kit?.full) {
+    ctx.drawImage(kit.full, x, topY, destW, botY - topY);
+    return;
+  }
+  ctx.strokeStyle = "#c47840";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 4, topY);
+  ctx.lineTo(x + 4, botY);
+  ctx.moveTo(x + destW - 4, topY);
+  ctx.lineTo(x + destW - 4, botY);
+  ctx.stroke();
+  ctx.strokeStyle = "#e08a4a";
+  ctx.lineWidth = 2;
+  for (let y = topY + 10; y < botY; y += 14) {
+    ctx.beginPath();
+    ctx.moveTo(x + 4, y);
+    ctx.lineTo(x + destW - 4, y);
+    ctx.stroke();
+  }
 }
 
 function conveyorAt(body) {
@@ -292,8 +354,8 @@ function makePlayer(x, y) {
   return {
     x,
     y,
-    w: 14,
-    h: 26,
+    w: 16,
+    h: 30,
     vx: 0,
     vy: 0,
     dir: 1,
@@ -370,8 +432,9 @@ function updatePlayer(dt) {
     p.climbing = true;
     p.vy = 0;
     p.vx = 0;
-    if (up) p.vy = -90;
-    if (down) p.vy = 90;
+    p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+    if (up) p.vy = -110;
+    if (down) p.vy = 110;
     if (left) p.dir = -1;
     if (right) p.dir = 1;
     if ((left || right) && p.onGround && !up && !down) p.climbing = false;
@@ -635,19 +698,22 @@ function drawWorld(t) {
   const parallax = (p.x / WIDTH - 0.5);
   const drift = t * 0.008;
 
+  ctx.fillStyle = "#0a0806";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
   if (art?.sky) {
+    ctx.globalAlpha = 0.34;
     ctx.drawImage(art.sky, -24 + parallax * -16 - drift, 0, WIDTH + 48, HEIGHT);
-  } else {
-    ctx.fillStyle = "#1a1814";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.globalAlpha = 1;
   }
-  if (art?.mid) {
-    ctx.globalAlpha = 0.88;
-    ctx.drawImage(art.mid, -40 + parallax * -34 - drift * 1.6, 8, WIDTH + 80, HEIGHT);
+  if (art?.midground) {
+    ctx.globalAlpha = 0.28;
+    ctx.drawImage(art.midground, -40 + parallax * -34 - drift * 1.6, 8, WIDTH + 80, HEIGHT);
     ctx.globalAlpha = 1;
   }
   if (art?.frame) {
+    ctx.globalAlpha = 0.4;
     ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
+    ctx.globalAlpha = 1;
   }
 
   for (let y = 0; y < ROWS; y += 1) {
@@ -672,20 +738,10 @@ function drawWorld(t) {
         ctx.fillStyle = "#8a5a32";
         ctx.fillRect(px + 8, py, 16, 4);
       }
-      if (isLadder(ch)) {
-        if (art?.ladderMid) {
-          ctx.drawImage(art.ladderMid, px + 8, py, 16, TILE);
-        } else {
-          ctx.strokeStyle = "#7a4a28";
-          ctx.strokeRect(px + 10, py, 12, TILE);
-          ctx.beginPath();
-          ctx.moveTo(px + 10, py + 16);
-          ctx.lineTo(px + 22, py + 16);
-          ctx.stroke();
-        }
-      }
     }
   }
+
+  eachLadderRun(drawLadderRun);
 
   for (const plat of state.movers) drawPlatform(plat.x, plat.y, plat.w, plat.h, "#8a4a28");
   for (const plate of state.collapses) {
@@ -762,7 +818,13 @@ function drawWorld(t) {
       if (hero.climbing) frames = art?.hero?.climb?.length ? art.hero.climb : frames;
       else if (!hero.onGround) frames = art?.hero?.jump?.length ? art.hero.jump : frames;
       const frame = frames?.[Math.floor(hero.anim) % (frames?.length || 1)];
-      if (frame) drawSprite(ctx, frame, hero.x - 10, hero.y - 12, 36, 40, hero.dir < 0);
+      if (frame) {
+        ctx.save();
+        ctx.shadowColor = "rgba(255, 214, 160, 0.7)";
+        ctx.shadowBlur = 10;
+        drawSprite(ctx, frame, hero.x - 14, hero.y - 16, 48, 52, hero.dir < 0);
+        ctx.restore();
+      }
       else {
         ctx.fillStyle = "#6a7a3a";
         ctx.fillRect(hero.x, hero.y, hero.w, hero.h);

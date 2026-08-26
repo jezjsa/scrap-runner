@@ -2,7 +2,8 @@ export const FEATURES = [
   {
     title: "Yards",
     items: [
-      "Each level is one screen of rusted platforms, ladders, pipes, and walkways",
+      "Each level is one screen of rusted platforms, pipe ladders, and walkways",
+      "Ladders punch through floors — climb the full column from handle to feet",
       "Collect every Energy Cell. The extraction hatch then lights up — reach it to clear the yard",
       "Twenty yards. The layout gets meaner; a new mechanic lands every few screens",
     ],
@@ -69,7 +70,7 @@ export const FEATURES = [
   {
     title: "UI",
     items: [
-      "Parallax wasteland sky, midground, and rusted frame sit behind the yard. You, the bots, and the cells draw in front",
+      "Dim wasteland sky and frame sit behind the yard so the rusted ladders, cells, and scavenger read in front",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",
     ],
