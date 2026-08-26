@@ -13,6 +13,7 @@ const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
 const SWING_GRAB = 0.92;
 const SWING_CATCH = 36;
+const SWING_CATCH_T = 0.22;
 const DOOR_W = 78;
 const DOOR_H = 132;
 const DOOR_FRAME_T = 0.18;
@@ -606,6 +607,9 @@ function makePlayer(x, y) {
     swingArmed: false,
     swingLock: 0,
     swingTravel: null,
+    swingCatch: 1,
+    swingOffX: 0,
+    swingOffY: 0,
     climbLock: 0,
     ignoreUpJump: false,
   };
@@ -661,11 +665,14 @@ function updatePlayer(dt) {
   if (yardHasSwing()) {
     if (p.swinging) {
       if (!hop) p.swingArmed = true;
-      if (p.swingArmed && hop && (left || right)) {
+      if (p.swingArmed && hop && (left || right) && p.swingCatch >= 1) {
         p.swinging = false;
         p.swingArmed = false;
         p.swingLock = 0.4;
         p.swingTravel = null;
+        p.swingCatch = 1;
+        p.swingOffX = 0;
+        p.swingOffY = 0;
         p.dir = left ? -1 : 1;
         p.vx = p.dir * 240;
         p.vy = -300;
@@ -673,7 +680,7 @@ function updatePlayer(dt) {
         leapedFromSwing = true;
         sfx.jump();
       } else {
-        attachToSwing(p, worldT);
+        attachToSwing(p, worldT, dt);
         updateSwingFacing(p, worldT);
       }
     } else {
@@ -1145,19 +1152,38 @@ function nearSwing(p, t) {
   return false;
 }
 
+function swingHang(t, p) {
+  const hook = swingHook(t);
+  return { x: hook.x - p.w / 2, y: hook.y - 10 };
+}
+
 function tryGrabSwing(p) {
   if (!yardHasSwing() || p.swinging || p.swingLock > 0) return;
   if (!nearSwing(p, worldT)) return;
+  const hang = swingHang(worldT, p);
   p.swinging = true;
   p.swingArmed = !keys.has(" ");
   p.swingTravel = null;
-  attachToSwing(p, worldT);
+  p.swingCatch = 0;
+  p.swingOffX = p.x - hang.x;
+  p.swingOffY = p.y - hang.y;
+  p.vx = 0;
+  p.vy = 0;
+  p.onGround = false;
+  p.walking = false;
+  p.climbing = false;
+  p.sliding = false;
+  attachToSwing(p, worldT, 0);
 }
 
-function attachToSwing(p, t) {
-  const hook = swingHook(t);
-  p.x = hook.x - p.w / 2;
-  p.y = hook.y - 10;
+function attachToSwing(p, t, dt = 0) {
+  const hang = swingHang(t, p);
+  if (p.swingCatch < 1) {
+    p.swingCatch = Math.min(1, p.swingCatch + dt / SWING_CATCH_T);
+  }
+  const u = 1 - (1 - p.swingCatch) ** 3;
+  p.x = hang.x + p.swingOffX * (1 - u);
+  p.y = hang.y + p.swingOffY * (1 - u);
   p.vx = 0;
   p.vy = 0;
   p.onGround = false;
@@ -1354,12 +1380,15 @@ function drawWorld(t) {
     if (!blink) {
       let frames = art?.hero?.run;
       let frameIndex = Math.floor(hero.anim);
-      if (hero.swinging || hero.climbing) {
+      if (hero.swinging && hero.swingCatch >= 1) {
         frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-        if (hero.swinging || (!hero.sliding && Math.abs(hero.vy) <= 20)) frameIndex = 0;
-      } else if (!hero.onGround && art?.hero?.jump?.length) {
+        frameIndex = 0;
+      } else if (hero.climbing) {
+        frames = art?.hero?.climb?.length ? art.hero.climb : frames;
+        if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
+      } else if ((!hero.onGround || (hero.swinging && hero.swingCatch < 1)) && art?.hero?.jump?.length) {
         frames = art.hero.jump;
-        frameIndex = hero.vy < 0 ? Math.min(1, frames.length - 1) : 0;
+        frameIndex = hero.vy < 0 || hero.swinging ? Math.min(1, frames.length - 1) : 0;
       } else if (!hero.walking) {
         frames = art?.hero?.idle?.length ? art.hero.idle : frames;
         if (!art?.hero?.idle?.length) frameIndex = 0;
