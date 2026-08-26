@@ -317,16 +317,48 @@ function classifyHero(blobs) {
 }
 
 function classifySwingPoses(img) {
-  const cellW = Math.floor(img.width / 3);
-  const cellH = Math.floor(img.height / 2);
-  const frames = [];
-  for (let c = 0; c < 3; c += 1) {
-    const cell = document.createElement("canvas");
-    cell.width = cellW;
-    cell.height = cellH;
-    cell.getContext("2d").drawImage(img, c * cellW, 0, cellW, cellH, 0, 0, cellW, cellH);
-    frames.push(trimFrame(cell));
+  const sheet = asCanvas(img);
+  const ctx = sheet.getContext("2d");
+  const { width, height } = sheet;
+  const image = ctx.getImageData(0, 0, width, height);
+  const data = image.data;
+  const topH = Math.floor(height * 0.56);
+  const occ = new Array(width).fill(0);
+  for (let x = 0; x < width; x += 1) {
+    for (let y = 0; y < topH; y += 1) {
+      const i = (y * width + x) * 4;
+      if (data[i + 3] > 40 && (data[i] > 18 || data[i + 1] > 18 || data[i + 2] > 18)) {
+        occ[x] += 1;
+      }
+    }
   }
+  const runs = [];
+  let start = -1;
+  for (let x = 0; x <= width; x += 1) {
+    const solid = x < width && occ[x] >= 8;
+    if (solid && start < 0) start = x;
+    if (!solid && start >= 0) {
+      runs.push({ x0: start, x1: x - 1 });
+      start = -1;
+    }
+  }
+  const merged = [];
+  for (const run of runs) {
+    const last = merged[merged.length - 1];
+    if (last && run.x0 - last.x1 < 28) last.x1 = run.x1;
+    else merged.push({ x0: run.x0, x1: run.x1 });
+  }
+  const hang = merged.filter((run) => run.x1 - run.x0 > 80).sort((a, b) => a.x0 - b.x0).slice(0, 3);
+  const frames = hang.map((run) => {
+    const pad = 4;
+    const sx = Math.max(0, run.x0 - pad);
+    const sw = Math.min(width, run.x1 + 1 + pad) - sx;
+    const cell = document.createElement("canvas");
+    cell.width = sw;
+    cell.height = topH;
+    cell.getContext("2d").drawImage(sheet, sx, 0, sw, topH, 0, 0, sw, topH);
+    return trimFrame(cell);
+  });
   return {
     ride: frames[0] ?? null,
     settle: frames[1] ?? null,

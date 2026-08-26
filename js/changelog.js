@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T16:35:00+01:00",
+    title: "One pose at a time",
+    items: [
+      "The hang frames on the crane hook no longer show a sliver of the next pose — the sheet was being cut into even columns, and the figures do not sit on that grid",
+    ],
+  },
+  {
     at: "2026-08-26T16:25:00+01:00",
     title: "Hang from the hook",
     items: [
