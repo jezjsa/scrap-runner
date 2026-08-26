@@ -916,35 +916,6 @@ function drawSwing(t) {
   ctx.rotate(angle);
   ctx.drawImage(img, -destW / 2, 0, destW, destH);
   ctx.restore();
-  drawSwingGrab(t);
-}
-
-function drawSwingGrab(t) {
-  const { x1, y1, x2, y2 } = swingGrabSegment(t);
-  ctx.save();
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "rgba(232, 168, 80, 0.22)";
-  ctx.lineWidth = SWING_CATCH * 2;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(255, 214, 130, 0.5)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawPlayerHitbox(p) {
-  if (!p || !yardHasSwing()) return;
-  ctx.save();
-  ctx.strokeStyle = p.swinging ? "rgba(140, 220, 120, 0.7)" : "rgba(120, 200, 230, 0.45)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(p.x + 0.5, p.y + 0.5, p.w - 1, p.h - 1);
-  ctx.restore();
 }
 
 function drawPlatform(x, y, w, h, color = "#6a3a22") {
@@ -1025,6 +996,19 @@ function drawWorld(t) {
 
   for (const cell of state.cells) {
     if (cell.got) continue;
+    const cx = cell.x + 10;
+    const cy = cell.y + 8;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + cell.x * 0.08 + cell.y * 0.05);
+    const alpha = 0.22 + pulse * 0.16;
+    const radius = 28 + pulse * 5;
+    const glow = ctx.createRadialGradient(cx, cy, 3, cx, cy, radius);
+    glow.addColorStop(0, `rgba(160, 240, 110, ${alpha})`);
+    glow.addColorStop(0.4, `rgba(110, 210, 80, ${alpha * 0.42})`);
+    glow.addColorStop(1, "rgba(70, 160, 50, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
     const frame = art?.cells?.[cell.frame % (art.cells.length || 1)];
     if (frame) drawSprite(ctx, frame, cell.x - 2, cell.y - 4, 24, 24);
     else {
@@ -1085,7 +1069,6 @@ function drawWorld(t) {
         ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
       }
     }
-    drawPlayerHitbox(hero);
   }
 
   const def = LEVELS[state.level];

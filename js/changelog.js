@@ -1,5 +1,13 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T11:15:00+01:00",
+    title: "Live cells",
+    items: [
+      "Energy cells sit on a faint pulsing green glow",
+      "The amber rope band and blue hitbox overlays are gone",
+    ],
+  },
+  {
     at: "2026-08-26T11:10:00+01:00",
     title: "On the rope",
     items: [
