@@ -1,4 +1,4 @@
-import heroUrl from "../assets/hero.png";
+import heroUrl from "../assets/hero-new.png";
 import enemiesUrl from "../assets/enemies.png";
 import cellsUrl from "../assets/cells.png";
 import laddersUrl from "../assets/ladders.png";
@@ -115,18 +115,24 @@ function sliceGrid(img, cols, rows) {
   return frames;
 }
 
-function keyFull(img) {
+function asCanvas(img) {
   const canvas = document.createElement("canvas");
   canvas.width = img.width;
   canvas.height = img.height;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-  keyBackdrop(ctx, canvas.width, canvas.height);
+  canvas.getContext("2d").drawImage(img, 0, 0);
   return canvas;
 }
 
-function extractBlobs(img, minArea = 180) {
-  const sheet = keyFull(img);
+function keyFull(img) {
+  const canvas = asCanvas(img);
+  keyBackdrop(canvas.getContext("2d"), canvas.width, canvas.height);
+  return canvas;
+}
+
+function extractBlobs(img, minArea = 180, opts = {}) {
+  const minAlpha = opts.minAlpha ?? 12;
+  const maxW = opts.maxW ?? Infinity;
+  const sheet = opts.key === false ? asCanvas(img) : keyFull(img);
   const ctx = sheet.getContext("2d");
   const { width, height } = sheet;
   const image = ctx.getImageData(0, 0, width, height);
@@ -134,7 +140,7 @@ function extractBlobs(img, minArea = 180) {
   const seen = new Uint8Array(width * height);
   const blobs = [];
 
-  const solid = (p) => data[p * 4 + 3] > 12;
+  const solid = (p) => data[p * 4 + 3] >= minAlpha;
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -167,6 +173,7 @@ function extractBlobs(img, minArea = 180) {
         }
       }
       if (area < minArea) continue;
+      if (maxX - minX + 1 > maxW) continue;
       const pad = 2;
       const sx = Math.max(0, minX - pad);
       const sy = Math.max(0, minY - pad);
@@ -190,22 +197,21 @@ function extractBlobs(img, minArea = 180) {
 }
 
 function classifyHero(blobs) {
-  const people = blobs.filter((row) => row.area >= 4000);
+  const people = blobs.filter((row) => row.area >= 4000 && row.w < 400);
   const byY = [...people].sort((a, b) => a.y - b.y);
-  const topY = byY[0]?.y ?? 0;
-  const run = people
-    .filter((row) => row.y < topY + 80)
-    .sort((a, b) => a.x - b.x)
-    .map((row) => row.canvas);
-  const rest = people.filter((row) => row.y >= topY + 80);
-  const jump = rest
-    .filter((row) => row.h < 190)
-    .sort((a, b) => a.x - b.x)
-    .map((row) => row.canvas);
-  const climb = rest
-    .filter((row) => row.h >= 190)
-    .sort((a, b) => a.y - b.y || a.x - b.x)
-    .map((row) => row.canvas);
+  const rows = [];
+  for (const blob of byY) {
+    const last = rows[rows.length - 1];
+    if (!last || blob.y > last[0].y + 140) rows.push([blob]);
+    else last.push(blob);
+  }
+  const run = (rows[0] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas);
+  const mid = (rows[1] || []).sort((a, b) => a.x - b.x);
+  const jump = mid.slice(0, 2).map((row) => row.canvas);
+  const climb = [
+    ...mid.slice(2).map((row) => row.canvas),
+    ...(rows[2] || []).sort((a, b) => a.x - b.x).map((row) => row.canvas),
+  ];
   return { run, jump, climb };
 }
 
@@ -220,7 +226,7 @@ export async function loadArt() {
     loadImage(frameUrl),
   ]);
 
-  const hero = classifyHero(extractBlobs(heroImg, 4000));
+  const hero = classifyHero(extractBlobs(heroImg, 4000, { key: false, minAlpha: 40, maxW: 400 }));
   const enemyFrames = sliceGrid(enemyImg, 4, 4);
   const cellFrames = sliceGrid(cellImg, 4, 3);
   const blobs = extractBlobs(ladderImg);
