@@ -24,13 +24,14 @@ export const FEATURES = [
       "Walk with A / D, arrows, or O / P. Let go and he stands still — no running on the spot",
       "Climb ladders with up / down. At the top you hop onto the ledge — no extra jump. Standing on a ledge with a ladder under your feet, press down to climb down. Jumping onto a ladder pulls you onto the pipes. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone drops you until you grab with up / W. Yard 1’s crane hook: jump on, swing, then Space plus a direction to leap off",
       "Climb poses are the reach-and-step frames from the sheet — the rusted pipe ladder is in the yard, not on the sprite. Hang still when you are not moving",
-      "Touch a scrap bot, drone, crawler, hunter, orb, crusher, or a live floor and you lose a life",
+      "Touch a scrap bot, scrap rat, drone, crawler, hunter, orb, crusher, or a live floor and you lose a life",
     ],
   },
   {
     title: "Enemies",
     items: [
       "Scrap Bot — walks platforms and uses ladders. Drawn a bit larger so you can see them coming",
+      "Scrap Rat — scurries one walkway and turns at the edge. Yard 3 has a few on the mid ledges",
       "Crawler — patrols one platform and turns at the edge",
       "Drone — flies a horizontal beat across gaps (from yard 8)",
       "Hunter Bot — sometimes picks a route toward you",
@@ -42,7 +43,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3’s top walkways sit low enough that you stay on screen",
+      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3’s top walkways sit low enough that you stay on screen, and scrap rats patrol the mid ledges",
       "Yard 4: moving platforms",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",

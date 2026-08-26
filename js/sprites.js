@@ -1,5 +1,6 @@
 import heroUrl from "../assets/hero-new.png";
 import enemiesUrl from "../assets/enemies.png";
+import ratsUrl from "../assets/rats.png";
 import cellsUrl from "../assets/cells.png";
 import laddersUrl from "../assets/ladders.png";
 import skyUrl from "../assets/sky.png";
@@ -315,9 +316,10 @@ function classifyHero(blobs) {
 }
 
 export async function loadArt() {
-  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg, exitImg] = await Promise.all([
+  const [heroImg, enemyImg, ratImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg, exitImg] = await Promise.all([
     loadImage(heroUrl),
     loadImage(enemiesUrl),
+    loadImage(ratsUrl),
     loadImage(cellsUrl),
     loadImage(laddersUrl),
     loadImage(skyUrl),
@@ -341,7 +343,8 @@ export async function loadArt() {
       bot: enemyFrames.slice(0, 4),
       drone: enemyFrames.slice(4, 8),
       crawler: enemyFrames.slice(8, 12),
-      rat: enemyFrames.slice(12, 16),
+      hunter: enemyFrames.slice(12, 16),
+      rat: sliceGrid(ratImg, 4, 1),
     },
     cells: cellFrames,
     ladder,

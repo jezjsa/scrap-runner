@@ -376,15 +376,16 @@ function parseLevel(index) {
         state.switchPos = { x: x * TILE, y: y * TILE };
         setTile(x, y, ".");
       } else if (ch === "B" || ch === "R" || ch === "D" || ch === "X" || ch === "U") {
-        const kind = ch === "B" ? "bot" : ch === "R" ? "crawler" : ch === "D" ? "drone" : ch === "U" ? "guardian" : "hunter";
+        const kind = ch === "B" ? "bot" : ch === "R" ? "rat" : ch === "D" ? "drone" : ch === "U" ? "guardian" : "hunter";
         const big = kind === "guardian";
+        const rat = kind === "rat";
         state.enemies.push({
           kind,
-          x: x * TILE + (big ? 2 : 6),
-          y: y * TILE + (big ? -10 : 6),
-          w: big ? 28 : 18,
-          h: big ? 36 : 22,
-          vx: kind === "drone" ? 50 : 36,
+          x: x * TILE + (big ? 2 : rat ? 4 : 6),
+          y: y * TILE + (big ? -10 : rat ? 14 : 6),
+          w: big ? 28 : rat ? 24 : 18,
+          h: big ? 36 : rat ? 12 : 22,
+          vx: kind === "drone" ? 50 : rat ? 42 : 36,
           vy: 0,
           dir: x < COLS / 2 ? 1 : -1,
           climbing: false,
@@ -820,7 +821,7 @@ function nearestLadderX(fromX, rowY) {
 }
 
 function updateEnemy(e, dt) {
-  const speed = (e.kind === "drone" ? 70 : e.kind === "guardian" ? 52 : e.kind === "hunter" ? 48 : 38)
+  const speed = (e.kind === "drone" ? 70 : e.kind === "guardian" ? 52 : e.kind === "hunter" ? 48 : e.kind === "rat" ? 46 : 38)
     * DIFFICULTIES[state.difficulty].enemy;
   e.frame += dt * 8;
 
@@ -864,7 +865,7 @@ function updateEnemy(e, dt) {
     }
   }
 
-  if (e.kind === "crawler" || !climbKinds) {
+  if (e.kind === "crawler" || e.kind === "rat" || !climbKinds) {
     if (edgeAhead(e, e.dir)) e.dir *= -1;
   } else if (e.onGround && edgeAhead(e, e.dir)) {
     e.dir *= -1;
@@ -1224,15 +1225,19 @@ function drawWorld(t) {
   for (const e of state.enemies) {
     const sheet = e.kind === "drone" ? art?.enemies?.drone
       : e.kind === "crawler" ? art?.enemies?.crawler
-        : e.kind === "guardian" ? art?.enemies?.bot
-          : e.kind === "hunter" ? art?.enemies?.rat
-            : art?.enemies?.bot;
+        : e.kind === "rat" ? art?.enemies?.rat
+          : e.kind === "guardian" ? art?.enemies?.bot
+            : e.kind === "hunter" ? art?.enemies?.hunter
+              : art?.enemies?.bot;
     const frame = sheet?.[Math.floor(e.frame) % (sheet?.length || 1)];
-    const dw = e.kind === "guardian" ? 48 : 36;
-    const dh = e.kind === "guardian" ? 52 : 40;
-    if (frame) drawSprite(ctx, frame, e.x - 10, e.y - 14, dw, dh, e.dir < 0);
-    else {
-      ctx.fillStyle = e.kind === "drone" ? "#6a8a3a" : "#8a4a28";
+    if (e.kind === "rat" && frame) {
+      drawSpriteAtHeight(ctx, frame, e.x + e.w / 2, e.y + e.h, 28, e.dir < 0);
+    } else if (frame) {
+      const dw = e.kind === "guardian" ? 48 : 36;
+      const dh = e.kind === "guardian" ? 52 : 40;
+      drawSprite(ctx, frame, e.x - 10, e.y - 14, dw, dh, e.dir < 0);
+    } else {
+      ctx.fillStyle = e.kind === "drone" ? "#6a8a3a" : e.kind === "rat" ? "#6a4a20" : "#8a4a28";
       ctx.fillRect(e.x, e.y, e.w, e.h);
     }
   }
