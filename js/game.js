@@ -393,7 +393,41 @@ function parseLevel(index) {
 
   state.cellsMax = state.cells.length;
   if (!state.hatch) state.hatch = placeDoor(13);
+  nudgeEnemiesOffSpawn();
   state.player = makePlayer(state.spawn.x, state.spawn.y);
+}
+
+function enemyLandY(e) {
+  const tx = Math.min(COLS - 1, Math.max(0, Math.floor((e.x + e.w / 2) / TILE)));
+  const startTy = Math.min(ROWS - 1, Math.max(0, Math.floor((e.y + e.h) / TILE)));
+  for (let ty = startTy; ty < ROWS; ty += 1) {
+    if (isFloorChar(state.grid[ty][tx])) return beamTop(ty);
+  }
+  return e.y + e.h;
+}
+
+function nudgeEnemiesOffSpawn() {
+  const sx = state.spawn.x;
+  const sy = state.spawn.y + 30;
+  for (const e of state.enemies) {
+    if (e.kind === "drone") continue;
+    const feetY = enemyLandY(e);
+    if (Math.abs(e.x - sx) >= 64 || Math.abs(feetY - sy) >= 36) continue;
+    for (let y = 2; y < ROWS - 1; y += 1) {
+      for (let x = 5; x < COLS - 3; x += 1) {
+        if (!isFloorChar(state.grid[y][x])) continue;
+        const nx = x * TILE + 6;
+        const ny = beamTop(y) - e.h;
+        if (Math.abs(nx - sx) < 96) continue;
+        if (Math.abs(beamTop(y) - sy) < 36) continue;
+        e.x = nx;
+        e.y = ny;
+        e.dir = nx < WIDTH / 2 ? 1 : -1;
+        y = ROWS;
+        break;
+      }
+    }
+  }
 }
 
 function placeDoor(tileY) {
