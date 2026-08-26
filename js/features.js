@@ -73,7 +73,7 @@ export const FEATURES = [
     title: "UI",
     items: [
       "Sky, midground, and rusted frame are the Photoshop files as-is. You, the bots, the cells, and the vault door draw in front of the scrap",
-      "Jump uses the leap poses from the sheet. The scavenger stays solid in the air",
+      "Jump uses the leap poses from the sheet. The scavenger stays solid in the air, and draws at the sheet’s proportions instead of a stretched box",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",
     ],

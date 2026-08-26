@@ -365,3 +365,9 @@ export function drawSprite(ctx, frame, x, y, w, h, flip = false) {
   }
   ctx.restore();
 }
+
+export function drawSpriteAtHeight(ctx, frame, cx, feetY, destH, flip = false, sink = 4) {
+  if (!frame) return;
+  const destW = Math.max(1, Math.round(destH * (frame.width / frame.height)));
+  drawSprite(ctx, frame, cx - destW / 2, feetY - destH + sink, destW, destH, flip);
+}
