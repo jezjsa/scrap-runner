@@ -5,7 +5,7 @@ export const FEATURES = [
       "Each level is one screen of rusted platforms, pipe ladders, and walkways",
       "Ladders punch through floors and stick a little above each ledge. Hold up to the last rung and you hop onto the walkway — then walk left or right. Every ladder is the same width",
       "Every yard has a ladder from the floor up to the first ledge — Yard 1 has one on both sides",
-      "Collect every Energy Cell — each one sits on a faint pulsing green glow and draws at the sheet’s shape, not a stretched square. The vault door then opens — walk in to clear the yard",
+      "Collect every Energy Cell — each one sits on a faint pulsing green glow and draws at the sheet’s shape, not a stretched square. Grab one and green coin bubbles pop over his head, then fade. The vault door then opens — walk in to clear the yard",
       "Twenty yards. The layout gets meaner; a new mechanic lands every few screens",
     ],
   },

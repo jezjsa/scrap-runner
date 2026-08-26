@@ -54,6 +54,7 @@ const state = {
   player: null,
   enemies: [],
   cells: [],
+  pickups: [],
   movers: [],
   collapses: [],
   crushers: [],
@@ -328,11 +329,70 @@ function addScore(n) {
   }
 }
 
+function spawnCellBurst(p) {
+  const headX = p.x + p.w / 2;
+  const headY = p.y + p.h - 56;
+  for (let i = 0; i < 6; i += 1) {
+    const ang = -Math.PI / 2 + (i - 2.5) * 0.32 + (Math.random() - 0.5) * 0.28;
+    const spd = 42 + Math.random() * 36;
+    state.pickups.push({
+      x: headX + (Math.random() - 0.5) * 10,
+      y: headY + (Math.random() - 0.5) * 6,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      r: 3.6 + Math.random() * 3.2,
+      age: 0,
+      life: 0.36 + Math.random() * 0.18,
+    });
+  }
+}
+
+function updatePickups(dt) {
+  for (const b of state.pickups) {
+    b.age += dt;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.vy -= 30 * dt;
+    b.vx *= Math.max(0, 1 - 1.6 * dt);
+  }
+  state.pickups = state.pickups.filter((b) => b.age < b.life);
+}
+
+function drawPickups() {
+  for (const b of state.pickups) {
+    const fade = 1 - b.age / b.life;
+    const alpha = fade * fade;
+    const r = b.r * (1 + (1 - fade) * 0.4);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    const glow = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r * 2.4);
+    glow.addColorStop(0, "rgba(180, 255, 120, 0.55)");
+    glow.addColorStop(1, "rgba(80, 180, 50, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r * 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#6ad24a";
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(210, 255, 160, 0.95)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.fillStyle = "rgba(230, 255, 200, 0.9)";
+    ctx.beginPath();
+    ctx.ellipse(b.x - r * 0.28, b.y - r * 0.32, r * 0.28, r * 0.18, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
 function parseLevel(index) {
   const def = LEVELS[index];
   state.grid = def.grid.slice();
   state.enemies = [];
   state.cells = [];
+  state.pickups = [];
   state.movers = [];
   state.collapses = [];
   state.crushers = [];
@@ -746,6 +806,7 @@ function updatePlayer(dt) {
       cell.got = true;
       state.cellsGot += 1;
       addScore(120 + state.level * 40);
+      spawnCellBurst(p);
       sfx.collect();
       if (state.cellsGot >= state.cellsMax) {
         state.doorPhase = "opening";
@@ -1269,6 +1330,8 @@ function drawWorld(t) {
     }
   }
 
+  drawPickups();
+
   const def = LEVELS[state.level];
   ctx.fillStyle = "rgba(12, 8, 6, 0.55)";
   ctx.fillRect(10, 8, 280, 28);
@@ -1297,6 +1360,7 @@ function tick(ts) {
     updateDoor(dt);
     updateMovers(dt);
     updatePlayer(dt);
+    updatePickups(dt);
     for (const e of state.enemies) updateEnemy(e, dt);
     hud();
   } else if (state.phase === "exiting") {

@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T13:26:00+01:00",
+    title: "Green coins",
+    items: [
+      "Picking up an energy cell now pops green coin bubbles above the scavenger’s head — they rise and fade",
+    ],
+  },
+  {
     at: "2026-08-26T13:00:00+01:00",
     title: "Machines on the drift",
     items: [
