@@ -3,7 +3,7 @@ export const FEATURES = [
     title: "Yards",
     items: [
       "Each level is one screen of rusted platforms, pipe ladders, and walkways. The highest ledge always leaves room above for the scavenger plus a full jump — you should not leave the top of the yard",
-      "Ladders punch through floors and stick a little above each ledge. Hold up to the last rung and you hop onto the walkway — then walk left or right. Every ladder is the same width",
+      "Ladders punch through floors and stick a little above each ledge. Hold up to the last rung and you hop onto the walkway — then walk left or right. Every ladder is the same width, drawn a bit wider so the pipes read against the scrap",
       "Every yard has a ladder from the floor up to the first ledge. Yard 1’s right stack stops at that ledge — swing the crane hook to get across",
       "Collect every Energy Cell — each one sits on a faint pulsing green glow and draws at the sheet’s shape, not a stretched square. Grab one and green coin bubbles pop over his head, then fade. The vault door then opens — walk in to clear the yard",
       "Twenty yards. The layout gets meaner; a new mechanic lands every few screens",

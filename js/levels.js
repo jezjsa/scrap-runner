@@ -51,6 +51,20 @@ function punchLaddersThroughLedges(grid) {
   return cells.map((row) => row.join(""));
 }
 
+function clearOrphanLedges(grid) {
+  const realFloor = "=><E";
+  return grid.map((row) => {
+    const cells = row.split("");
+    for (let x = 0; x < cells.length; x += 1) {
+      if (cells[x] !== "+") continue;
+      const left = x > 0 && realFloor.includes(cells[x - 1]);
+      const right = x < cells.length - 1 && realFloor.includes(cells[x + 1]);
+      if (!left && !right) cells[x] = "L";
+    }
+    return cells.join("");
+  });
+}
+
 function isWalkRow(row) {
   return row.split("").some((ch) => WALK_CHARS.includes(ch));
 }
@@ -115,7 +129,7 @@ function pack(name, blurb, raw, opts = {}) {
   return {
     name,
     blurb,
-    grid: punchLaddersThroughLedges(connectLaddersToFloor(ensureHeadroom(grid, name), opts.floorLadderCols)),
+    grid: clearOrphanLedges(punchLaddersThroughLedges(connectLaddersToFloor(ensureHeadroom(grid, name), opts.floorLadderCols))),
   };
 }
 

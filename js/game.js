@@ -263,7 +263,7 @@ function eachLadderRun(fn) {
 }
 
 function drawLadderRun(col, y0, y1) {
-  const destW = 24;
+  const destW = 36;
   const x = col * TILE + (TILE - destW) / 2;
   const topY = y0 * TILE - 12;
   const botY = y1 * TILE;
