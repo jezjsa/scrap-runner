@@ -158,21 +158,27 @@ function eachLadderRun(fn) {
 }
 
 function drawLadderRun(col, y0, y1) {
-  const destW = 30;
+  const destW = 24;
   const x = col * TILE + (TILE - destW) / 2;
   const topY = y0 * TILE;
   const botY = y1 * TILE;
   const kit = art?.ladder;
   ctx.imageSmoothingEnabled = false;
   if (kit?.mid && kit?.top && kit?.base) {
-    const topH = Math.round(destW * (kit.top.height / kit.top.width));
-    const baseH = Math.round(destW * (kit.base.height / kit.base.width));
-    const midH = Math.max(18, Math.round(destW * (kit.mid.height / kit.mid.width)));
+    const scale = destW / kit.mid.width;
+    const topH = Math.max(8, Math.round(kit.top.height * scale));
+    const midH = Math.max(8, Math.round(kit.mid.height * scale));
+    const baseH = Math.max(8, Math.round(kit.base.height * scale));
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x - 2, topY, destW + 4, botY - topY);
+    ctx.clip();
     ctx.drawImage(kit.top, x, topY, destW, topH);
     for (let y = topY + topH - 2; y < botY - baseH; y += midH - 2) {
       ctx.drawImage(kit.mid, x, y, destW, midH);
     }
     ctx.drawImage(kit.base, x, botY - baseH, destW, baseH);
+    ctx.restore();
     return;
   }
   if (kit?.full) {

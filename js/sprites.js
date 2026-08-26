@@ -196,6 +196,38 @@ function extractBlobs(img, minArea = 180, opts = {}) {
   return blobs.sort((a, b) => a.h - b.h || a.w - b.w);
 }
 
+function mergeBlobs(left, right) {
+  const x = Math.min(left.x, right.x);
+  const y = Math.min(left.y, right.y);
+  const w = Math.max(left.x + left.w, right.x + right.w) - x;
+  const h = Math.max(left.y + left.h, right.y + right.h) - y;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(left.canvas, left.x - x, left.y - y);
+  ctx.drawImage(right.canvas, right.x - x, right.y - y);
+  return { canvas, w, h, x, y, area: left.area + right.area };
+}
+
+function classifyLadder(blobs) {
+  const kit = blobs.filter((row) => row.x < 250 && row.h < 180 && row.area >= 1500);
+  const top = [...kit].sort((a, b) => b.w - a.w)[0] || blobs[0];
+  const rest = kit.filter((row) => row !== top);
+  const mid = [...rest].sort((a, b) => b.area - a.area)[0] || top;
+  const feet = rest
+    .filter((row) => row !== mid && row.w < 60 && row.h > 80)
+    .sort((a, b) => a.x - b.x);
+  const base = feet.length >= 2 ? mergeBlobs(feet[0], feet[1]) : feet[0] || mid;
+  const full = [...blobs].sort((a, b) => b.h - a.h)[0];
+  return {
+    top: top?.canvas || null,
+    mid: mid?.canvas || null,
+    base: base?.canvas || null,
+    full: full?.canvas || null,
+  };
+}
+
 function classifyHero(blobs) {
   const people = blobs.filter((row) => row.area >= 4000 && row.w < 400);
   const byY = [...people].sort((a, b) => a.y - b.y);
@@ -231,16 +263,7 @@ export async function loadArt() {
   const hero = classifyHero(extractBlobs(heroImg, 4000, { key: false, minAlpha: 40, maxW: 400 }));
   const enemyFrames = sliceGrid(enemyImg, 4, 4);
   const cellFrames = sliceGrid(cellImg, 4, 3);
-  const blobs = extractBlobs(ladderImg);
-  const byH = [...blobs].sort((a, b) => a.h - b.h);
-  const tallest = byH[byH.length - 1];
-  const pieces = byH.filter((row) => !tallest || row.h < tallest.h * 0.42);
-  const top = [...pieces].sort((a, b) => b.w / b.h - a.w / a.h)[0] || pieces[0];
-  const leftover = pieces.filter((row) => row !== top);
-  leftover.sort((a, b) => b.h - a.h);
-  const mid = leftover[0] || top;
-  const base = leftover.find((row) => row !== mid) || leftover[1] || mid;
-  const full = tallest;
+  const ladder = classifyLadder(extractBlobs(ladderImg));
 
   return {
     sky,
@@ -254,12 +277,7 @@ export async function loadArt() {
       rat: enemyFrames.slice(12, 16),
     },
     cells: cellFrames,
-    ladder: {
-      top: top?.canvas || null,
-      mid: mid?.canvas || null,
-      base: base?.canvas || null,
-      full: full?.canvas || null,
-    },
+    ladder,
   };
 }
 

@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T10:30:00+01:00",
+    title: "One ladder width",
+    items: [
+      "Every rusted ladder is the same width now — the short climbs from the floor no longer balloon into fat pipes",
+    ],
+  },
+  {
     at: "2026-08-26T10:22:00+01:00",
     title: "Leap or slide",
     items: [
