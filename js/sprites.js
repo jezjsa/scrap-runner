@@ -167,24 +167,46 @@ function extractBlobs(img, minArea = 180) {
         }
       }
       if (area < minArea) continue;
+      const pad = 2;
+      const sx = Math.max(0, minX - pad);
+      const sy = Math.max(0, minY - pad);
+      const sw = Math.min(width - 1, maxX + pad) - sx + 1;
+      const sh = Math.min(height - 1, maxY + pad) - sy + 1;
       const piece = document.createElement("canvas");
-      piece.width = maxX - minX + 1;
-      piece.height = maxY - minY + 1;
-      piece.getContext("2d").drawImage(
-        sheet,
-        minX,
-        minY,
-        piece.width,
-        piece.height,
-        0,
-        0,
-        piece.width,
-        piece.height,
-      );
-      blobs.push({ canvas: piece, w: piece.width, h: piece.height, area });
+      piece.width = sw;
+      piece.height = sh;
+      piece.getContext("2d").drawImage(sheet, sx, sy, sw, sh, 0, 0, sw, sh);
+      blobs.push({
+        canvas: piece,
+        w: sw,
+        h: sh,
+        area,
+        x: sx,
+        y: sy,
+      });
     }
   }
   return blobs.sort((a, b) => a.h - b.h || a.w - b.w);
+}
+
+function classifyHero(blobs) {
+  const people = blobs.filter((row) => row.area >= 4000);
+  const byY = [...people].sort((a, b) => a.y - b.y);
+  const topY = byY[0]?.y ?? 0;
+  const run = people
+    .filter((row) => row.y < topY + 80)
+    .sort((a, b) => a.x - b.x)
+    .map((row) => row.canvas);
+  const rest = people.filter((row) => row.y >= topY + 80);
+  const jump = rest
+    .filter((row) => row.h < 190)
+    .sort((a, b) => a.x - b.x)
+    .map((row) => row.canvas);
+  const climb = rest
+    .filter((row) => row.h >= 190)
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .map((row) => row.canvas);
+  return { run, jump, climb };
 }
 
 export async function loadArt() {
@@ -198,7 +220,7 @@ export async function loadArt() {
     loadImage(frameUrl),
   ]);
 
-  const heroFrames = sliceGrid(heroImg, 8, 3);
+  const hero = classifyHero(extractBlobs(heroImg, 4000));
   const enemyFrames = sliceGrid(enemyImg, 4, 4);
   const cellFrames = sliceGrid(cellImg, 4, 3);
   const blobs = extractBlobs(ladderImg);
@@ -216,11 +238,7 @@ export async function loadArt() {
     sky,
     midground: midgroundImg,
     frame: keyFull(frameImg),
-    hero: {
-      run: heroFrames.slice(0, 8),
-      jump: heroFrames.slice(8, 10),
-      climb: heroFrames.slice(10, 16).filter((frame) => frame.width > 8),
-    },
+    hero,
     enemies: {
       bot: enemyFrames.slice(0, 4),
       drone: enemyFrames.slice(4, 8),

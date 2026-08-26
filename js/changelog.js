@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T09:28:00+01:00",
+    title: "The right jump",
+    items: [
+      "Jump now uses the actual leap poses from the sheet, not a slice from the gap between figures",
+    ],
+  },
+  {
     at: "2026-08-26T09:22:00+01:00",
     title: "Solid in the air",
     items: [

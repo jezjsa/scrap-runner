@@ -71,7 +71,7 @@ export const FEATURES = [
     title: "UI",
     items: [
       "Dim wasteland sky and frame sit behind the yard so the rusted ladders, cells, and scavenger read in front",
-      "The scavenger stays solid when he jumps — no washed-out mid-air pose",
+      "Jump uses the leap poses from the sheet. The scavenger stays solid in the air",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",
     ],
