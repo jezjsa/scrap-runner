@@ -1125,9 +1125,9 @@ function drawWorld(t) {
           : e.kind === "hunter" ? art?.enemies?.rat
             : art?.enemies?.bot;
     const frame = sheet?.[Math.floor(e.frame) % (sheet?.length || 1)];
-    const dw = e.kind === "guardian" ? 40 : 28;
-    const dh = e.kind === "guardian" ? 44 : 30;
-    if (frame) drawSprite(ctx, frame, e.x - 6, e.y - 8, dw, dh, e.dir < 0);
+    const dw = e.kind === "guardian" ? 48 : 36;
+    const dh = e.kind === "guardian" ? 52 : 40;
+    if (frame) drawSprite(ctx, frame, e.x - 10, e.y - 14, dw, dh, e.dir < 0);
     else {
       ctx.fillStyle = e.kind === "drone" ? "#6a8a3a" : "#8a4a28";
       ctx.fillRect(e.x, e.y, e.w, e.h);

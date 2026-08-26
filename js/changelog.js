@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T12:10:00+01:00",
+    title: "Bigger bots",
+    items: [
+      "Scrap bots and the other machines draw a bit larger now — same bite, easier to see",
+    ],
+  },
+  {
     at: "2026-08-26T12:08:00+01:00",
     title: "Stop at the top",
     items: [

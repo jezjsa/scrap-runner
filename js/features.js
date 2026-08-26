@@ -30,7 +30,7 @@ export const FEATURES = [
   {
     title: "Enemies",
     items: [
-      "Scrap Bot — walks platforms and uses ladders",
+      "Scrap Bot — walks platforms and uses ladders. Drawn a bit larger so you can see them coming",
       "Crawler — patrols one platform and turns at the edge",
       "Drone — flies a horizontal beat across gaps (from yard 8)",
       "Hunter Bot — sometimes picks a route toward you",
