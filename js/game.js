@@ -1,5 +1,5 @@
 import { COLS, LEVELS, ROWS, TOTAL_LEVELS } from "./levels.js";
-import { drawSprite, drawSpriteAtHeight, drawSpriteFit, loadArt } from "./sprites.js";
+import { drawSprite, drawSpriteAtHeight, drawSpriteFit, drawSpriteFromTop, loadArt } from "./sprites.js";
 import { sfx } from "./audio.js";
 
 export const TILE = 32;
@@ -8,12 +8,14 @@ export const HEIGHT = ROWS * TILE;
 const HERO_DRAW_H = 64;
 const HERO_DRAW_SINK = 4;
 const HERO_VISUAL_H = HERO_DRAW_H - HERO_DRAW_SINK;
+const HERO_HANG_H = 80;
 
 const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
 const SWING_GRAB = 0.92;
 const SWING_CATCH = 36;
 const SWING_CATCH_T = 0.22;
+const SWING_SPIN_T = 0.2;
 const DOOR_W = 78;
 const DOOR_H = 132;
 const DOOR_FRAME_T = 0.18;
@@ -610,6 +612,7 @@ function makePlayer(x, y) {
     swingCatch: 1,
     swingOffX: 0,
     swingOffY: 0,
+    swingSpin: 0,
     climbLock: 0,
     ignoreUpJump: false,
   };
@@ -673,6 +676,7 @@ function updatePlayer(dt) {
         p.swingCatch = 1;
         p.swingOffX = 0;
         p.swingOffY = 0;
+        p.swingSpin = 0;
         p.dir = left ? -1 : 1;
         p.vx = p.dir * 240;
         p.vy = -300;
@@ -681,7 +685,7 @@ function updatePlayer(dt) {
         sfx.jump();
       } else {
         attachToSwing(p, worldT, dt);
-        updateSwingFacing(p, worldT);
+        updateSwingFacing(p, worldT, dt);
       }
     } else {
       tryGrabSwing(p);
@@ -1165,6 +1169,7 @@ function tryGrabSwing(p) {
   p.swingArmed = !keys.has(" ");
   p.swingTravel = null;
   p.swingCatch = 0;
+  p.swingSpin = 0;
   p.swingOffX = p.x - hang.x;
   p.swingOffY = p.y - hang.y;
   p.vx = 0;
@@ -1192,7 +1197,8 @@ function attachToSwing(p, t, dt = 0) {
   p.sliding = false;
 }
 
-function updateSwingFacing(p, t) {
+function updateSwingFacing(p, t, dt = 0) {
+  p.swingSpin = Math.max(0, p.swingSpin - dt);
   const travel = swingTravelDir(t);
   if (!travel) return;
   if (p.swingTravel == null) {
@@ -1202,6 +1208,7 @@ function updateSwingFacing(p, t) {
   if (travel !== p.swingTravel) {
     p.dir = travel;
     p.swingTravel = travel;
+    p.swingSpin = SWING_SPIN_T;
   }
 }
 
@@ -1380,26 +1387,32 @@ function drawWorld(t) {
     if (!blink) {
       let frames = art?.hero?.run;
       let frameIndex = Math.floor(hero.anim);
-      if (hero.swinging && hero.swingCatch >= 1) {
-        frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-        frameIndex = 0;
-      } else if (hero.climbing) {
-        frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-        if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
-      } else if ((!hero.onGround || (hero.swinging && hero.swingCatch < 1)) && art?.hero?.jump?.length) {
-        frames = art.hero.jump;
-        frameIndex = hero.vy < 0 || hero.swinging ? Math.min(1, frames.length - 1) : 0;
-      } else if (!hero.walking) {
-        frames = art?.hero?.idle?.length ? art.hero.idle : frames;
-        if (!art?.hero?.idle?.length) frameIndex = 0;
-      }
-      const frame = frames?.[frameIndex % (frames?.length || 1)];
-      if (frame) {
-        drawSpriteAtHeight(ctx, frame, hero.x + hero.w / 2, hero.y + hero.h, HERO_DRAW_H, hero.dir < 0);
-      }
-      else {
-        ctx.fillStyle = "#6a7a3a";
-        ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
+      if (hero.swinging && hero.swingCatch >= 1 && art?.hero?.hang?.ride) {
+        const hang = art.hero.hang;
+        const spinning = hero.swingSpin > 0 && hang.spin;
+        const settle = !spinning && hang.settle && Math.abs(swingAngle(worldT)) < 0.22;
+        const hangFrame = spinning ? hang.spin : settle ? hang.settle : hang.ride;
+        const hook = swingHook(worldT);
+        drawSpriteFromTop(ctx, hangFrame, hook.x, hook.y - 8, HERO_HANG_H, !spinning && hero.dir < 0);
+      } else {
+        if (hero.climbing) {
+          frames = art?.hero?.climb?.length ? art.hero.climb : frames;
+          if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
+        } else if ((!hero.onGround || (hero.swinging && hero.swingCatch < 1)) && art?.hero?.jump?.length) {
+          frames = art.hero.jump;
+          frameIndex = hero.vy < 0 || hero.swinging ? Math.min(1, frames.length - 1) : 0;
+        } else if (!hero.walking) {
+          frames = art?.hero?.idle?.length ? art.hero.idle : frames;
+          if (!art?.hero?.idle?.length) frameIndex = 0;
+        }
+        const frame = frames?.[frameIndex % (frames?.length || 1)];
+        if (frame) {
+          drawSpriteAtHeight(ctx, frame, hero.x + hero.w / 2, hero.y + hero.h, HERO_DRAW_H, hero.dir < 0);
+        }
+        else {
+          ctx.fillStyle = "#6a7a3a";
+          ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
+        }
       }
     }
   }

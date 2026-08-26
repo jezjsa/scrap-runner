@@ -7,6 +7,7 @@ import skyUrl from "../assets/sky.png";
 import midUrl from "../assets/midground.png";
 import frameUrl from "../assets/frame.png";
 import swingUrl from "../assets/swing.png";
+import swingHeroUrl from "../assets/swing-new.png";
 import exitUrl from "../assets/exit.png";
 
 function loadImage(src) {
@@ -315,8 +316,26 @@ function classifyHero(blobs) {
   return { idle, run, jump, climb };
 }
 
+function classifySwingPoses(img) {
+  const cellW = Math.floor(img.width / 3);
+  const cellH = Math.floor(img.height / 2);
+  const frames = [];
+  for (let c = 0; c < 3; c += 1) {
+    const cell = document.createElement("canvas");
+    cell.width = cellW;
+    cell.height = cellH;
+    cell.getContext("2d").drawImage(img, c * cellW, 0, cellW, cellH, 0, 0, cellW, cellH);
+    frames.push(trimFrame(cell));
+  }
+  return {
+    ride: frames[0] ?? null,
+    settle: frames[1] ?? null,
+    spin: frames[2] ?? null,
+  };
+}
+
 export async function loadArt() {
-  const [heroImg, enemyImg, ratImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg, exitImg] = await Promise.all([
+  const [heroImg, enemyImg, ratImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg, swingHeroImg, exitImg] = await Promise.all([
     loadImage(heroUrl),
     loadImage(enemiesUrl),
     loadImage(ratsUrl),
@@ -326,10 +345,12 @@ export async function loadArt() {
     loadImage(midUrl),
     loadImage(frameUrl),
     loadImage(swingUrl),
+    loadImage(swingHeroUrl),
     loadImage(exitUrl),
   ]);
 
   const hero = classifyHero(extractBlobs(heroImg, 4000, { key: false, minAlpha: 40, maxW: 400 }));
+  const hang = classifySwingPoses(swingHeroImg);
   const enemyFrames = sliceGrid(enemyImg, 4, 4);
   const cellFrames = sliceGrid(cellImg, 4, 3);
   const ladder = classifyLadder(extractBlobs(ladderImg));
@@ -338,7 +359,7 @@ export async function loadArt() {
     sky,
     midground: midgroundImg,
     frame: frameImg,
-    hero,
+    hero: { ...hero, hang },
     enemies: {
       bot: enemyFrames.slice(0, 4),
       drone: enemyFrames.slice(4, 8),
@@ -371,6 +392,12 @@ export function drawSpriteAtHeight(ctx, frame, cx, feetY, destH, flip = false, s
   if (!frame) return;
   const destW = Math.max(1, Math.round(destH * (frame.width / frame.height)));
   drawSprite(ctx, frame, cx - destW / 2, feetY - destH + sink, destW, destH, flip);
+}
+
+export function drawSpriteFromTop(ctx, frame, cx, topY, destH, flip = false) {
+  if (!frame) return;
+  const destW = Math.max(1, Math.round(destH * (frame.width / frame.height)));
+  drawSprite(ctx, frame, cx - destW / 2, topY, destW, destH, flip);
 }
 
 export function drawSpriteFit(ctx, frame, cx, cy, maxW, maxH, flip = false) {

@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T16:25:00+01:00",
+    title: "Hang from the hook",
+    items: [
+      "The scavenger now uses the hang poses on the crane rope — profile for the swing, a three-quarter settle at the bottom, and a back view when the rope turns him around",
+    ],
+  },
+  {
     at: "2026-08-26T15:55:00+01:00",
     title: "Pipes you can see",
     items: [
