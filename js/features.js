@@ -22,7 +22,7 @@ export const FEATURES = [
     title: "Moving around",
     items: [
       "Walk with A / D, arrows, or O / P. Let go and he stands still — no running on the spot",
-      "Climb ladders with up / down. Space or up jumps off a floor",
+      "Climb ladders with up / down. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone slides down",
       "Climb poses are just the scavenger — the rusted pipe ladder is in the yard, not on the sprite",
       "Touch a scrap bot, drone, crawler, hunter, orb, crusher, or a live floor and you lose a life",
     ],

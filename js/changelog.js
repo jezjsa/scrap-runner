@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T10:22:00+01:00",
+    title: "Leap or slide",
+    items: [
+      "Jump left or right off a ladder to hop away. Jump with no direction and you slide down the pipes",
+    ],
+  },
+  {
     at: "2026-08-26T10:18:00+01:00",
     title: "A climb on both sides",
     items: [

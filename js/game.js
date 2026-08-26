@@ -104,10 +104,11 @@ function beamTop(ty) {
   return ty * TILE + 18;
 }
 
-function floorY(px, prevY, nextY) {
+function floorY(px, prevY, nextY, throughHoles = false) {
   const tx = Math.floor(px / TILE);
   const ty = Math.floor(nextY / TILE);
-  if (isFloorChar(tileAt(tx, ty))) {
+  const ch = tileAt(tx, ty);
+  if (isFloorChar(ch) && !(throughHoles && ch === "+")) {
     const top = beamTop(ty);
     if (prevY <= top + 1 && nextY >= top) return top;
   }
@@ -361,6 +362,7 @@ function makePlayer(x, y) {
     dir: 1,
     onGround: false,
     climbing: false,
+    sliding: false,
     walking: false,
     invuln: 1.1,
     frame: 0,
@@ -390,8 +392,9 @@ function moveAxis(body, dx, dy) {
     body.y += dy;
     if (dy > 0) {
       const feet = body.y + body.h;
-      const left = floorY(body.x + 3, prevFeet, feet);
-      const right = floorY(body.x + body.w - 3, prevFeet, feet);
+      const through = Boolean(body.climbing);
+      const left = floorY(body.x + 3, prevFeet, feet, through);
+      const right = floorY(body.x + body.w - 3, prevFeet, feet, through);
       const top = left ?? right;
       if (top != null) {
         body.y = top - body.h - 0.01;
@@ -408,9 +411,11 @@ function updatePlayer(dt) {
   const right = keys.has("ArrowRight") || keys.has("d") || keys.has("p");
   const up = keys.has("ArrowUp") || keys.has("w");
   const down = keys.has("ArrowDown") || keys.has("s");
-  const jump = keys.has(" ") || up;
+  const hop = keys.has(" ");
+  const jump = hop || up;
 
   p.riding = null;
+  p.sliding = false;
   p.onGround = supportedAt(p.x + 2, p.y + p.h + 1) || supportedAt(p.x + p.w - 2, p.y + p.h + 1);
   for (const plat of state.movers) {
     if (p.x + p.w > plat.x && p.x < plat.x + plat.w && Math.abs(p.y + p.h - plat.y) < 6 && p.vy >= 0) {
@@ -430,16 +435,35 @@ function updatePlayer(dt) {
   }
 
   if (onLadder(p) && (up || down || p.climbing)) {
-    p.climbing = true;
-    p.vy = 0;
-    p.vx = 0;
-    p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
-    if (up) p.vy = -110;
-    if (down) p.vy = 110;
-    if (left) p.dir = -1;
-    if (right) p.dir = 1;
-    if ((left || right) && p.onGround && !up && !down) p.climbing = false;
-    p.walking = false;
+    if (hop && (left || right)) {
+      p.climbing = false;
+      p.sliding = false;
+      p.walking = false;
+      p.dir = left ? -1 : 1;
+      p.vx = p.dir * 200;
+      p.vy = -280;
+      p.onGround = false;
+      p.x += p.dir * 10;
+      sfx.jump();
+    } else if (hop && !up) {
+      p.climbing = true;
+      p.sliding = true;
+      p.walking = false;
+      p.vx = 0;
+      p.vy = 280;
+      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+    } else {
+      p.climbing = true;
+      p.vy = 0;
+      p.vx = 0;
+      p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
+      if (up) p.vy = -110;
+      if (down) p.vy = 110;
+      if (left) p.dir = -1;
+      if (right) p.dir = 1;
+      if ((left || right) && p.onGround && !up && !down) p.climbing = false;
+      p.walking = false;
+    }
   } else {
     p.climbing = false;
   }
@@ -471,7 +495,8 @@ function updatePlayer(dt) {
   moveAxis(p, 0, p.vy * dt);
   if (p.y > HEIGHT + 40) hurt();
 
-  if (p.climbing) p.anim += dt * 8;
+  if (p.sliding) p.anim += dt * 14;
+  else if (p.climbing) p.anim += dt * 8;
   else if (p.walking) p.anim += dt * 10;
   else if (p.onGround) p.anim += dt * 2;
   p.invuln = Math.max(0, p.invuln - dt);
