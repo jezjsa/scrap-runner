@@ -8,9 +8,10 @@ export const HEIGHT = ROWS * TILE;
 
 const SWING_PIVOT_X = WIDTH / 2;
 const SWING_PIVOT_Y = 2;
-const SWING_LEN = 240;
-const SWING_AMP = 0.28;
-const SWING_HZ = 0.45;
+const SWING_LEN = 152;
+const SWING_AMP = 0.55;
+const SWING_HZ = 0.42;
+const SWING_GRAB = 0.9;
 
 const DIFFICULTIES = {
   easy: { lives: 5, enemy: 0.82, label: "Easy" },
@@ -25,6 +26,7 @@ let ctx = null;
 let hooks = {};
 let running = false;
 let last = 0;
+let worldT = 0;
 let tipUntil = 0;
 let tipText = "";
 
@@ -419,6 +421,9 @@ function makePlayer(x, y) {
     frame: 0,
     anim: 0,
     riding: null,
+    swinging: false,
+    swingArmed: false,
+    swingLock: 0,
   };
 }
 
@@ -464,23 +469,52 @@ function updatePlayer(dt) {
   const down = keys.has("ArrowDown") || keys.has("s");
   const hop = keys.has(" ");
   const jump = hop || up;
+  let leapedFromSwing = false;
+
+  p.swingLock = Math.max(0, p.swingLock - dt);
+  if (yardHasSwing()) {
+    if (p.swinging) {
+      if (!hop) p.swingArmed = true;
+      if (p.swingArmed && hop && (left || right)) {
+        p.swinging = false;
+        p.swingArmed = false;
+        p.swingLock = 0.4;
+        p.dir = left ? -1 : 1;
+        p.vx = p.dir * 240;
+        p.vy = -300;
+        p.x += p.dir * 8;
+        leapedFromSwing = true;
+        sfx.jump();
+      } else {
+        attachToSwing(p, worldT);
+      }
+    } else if (p.swingLock <= 0 && nearHook(p, swingHook(worldT))) {
+      p.swinging = true;
+      p.swingArmed = !hop;
+      attachToSwing(p, worldT);
+    }
+  } else {
+    p.swinging = false;
+  }
 
   p.riding = null;
-  p.onGround = supportedAt(p.x + 2, p.y + p.h + 1) || supportedAt(p.x + p.w - 2, p.y + p.h + 1);
-  for (const plat of state.movers) {
-    if (p.x + p.w > plat.x && p.x < plat.x + plat.w && Math.abs(p.y + p.h - plat.y) < 6 && p.vy >= 0) {
-      p.onGround = true;
-      p.y = plat.y - p.h - 0.01;
-      p.riding = plat;
+  if (!p.swinging && !leapedFromSwing) {
+    p.onGround = supportedAt(p.x + 2, p.y + p.h + 1) || supportedAt(p.x + p.w - 2, p.y + p.h + 1);
+    for (const plat of state.movers) {
+      if (p.x + p.w > plat.x && p.x < plat.x + plat.w && Math.abs(p.y + p.h - plat.y) < 6 && p.vy >= 0) {
+        p.onGround = true;
+        p.y = plat.y - p.h - 0.01;
+        p.riding = plat;
+      }
     }
-  }
-  for (const plate of state.collapses) {
-    if (plate.gone) continue;
-    if (p.x + p.w > plate.x && p.x < plate.x + plate.w && Math.abs(p.y + p.h - plate.y) < 6 && p.vy >= 0) {
-      p.onGround = true;
-      p.y = plate.y - p.h - 0.01;
-      plate.timer += dt;
-      if (plate.timer > 0.45) plate.falling = true;
+    for (const plate of state.collapses) {
+      if (plate.gone) continue;
+      if (p.x + p.w > plate.x && p.x < plate.x + plate.w && Math.abs(p.y + p.h - plate.y) < 6 && p.vy >= 0) {
+        p.onGround = true;
+        p.y = plate.y - p.h - 0.01;
+        plate.timer += dt;
+        if (plate.timer > 0.45) plate.falling = true;
+      }
     }
   }
 
@@ -490,7 +524,8 @@ function updatePlayer(dt) {
   );
   const onSolidFloor = p.onGround && feetCh !== "+" && feetCh !== "L";
 
-  const canClimb = onLadder(p) || ((down || p.climbing || p.sliding) && ladderBeneath(p));
+  const canClimb = !p.swinging && !leapedFromSwing
+    && (onLadder(p) || ((down || p.climbing || p.sliding) && ladderBeneath(p)));
   if (canClimb && (up || down || p.climbing || p.sliding)) {
     if (hop && (left || right)) {
       p.climbing = false;
@@ -535,7 +570,7 @@ function updatePlayer(dt) {
     p.sliding = false;
   }
 
-  if (!p.climbing) {
+  if (!p.climbing && !p.swinging && !leapedFromSwing) {
     const walk = 140;
     p.vx = 0;
     p.walking = left || right;
@@ -781,16 +816,58 @@ function endRun(won) {
   });
 }
 
+function yardHasSwing() {
+  return state.level === 0;
+}
+
 function swingAngle(t) {
   return SWING_AMP * Math.sin(t * SWING_HZ * Math.PI * 2);
 }
 
+function swingSize() {
+  const img = art?.swing;
+  const destH = SWING_LEN;
+  const destW = img ? Math.max(22, Math.round(img.width * (destH / img.height))) : 22;
+  return { destW, destH };
+}
+
+function swingHook(t) {
+  const { destW, destH } = swingSize();
+  const angle = swingAngle(t);
+  const grab = destH * SWING_GRAB;
+  return {
+    angle,
+    destW,
+    destH,
+    x: SWING_PIVOT_X + Math.sin(angle) * grab,
+    y: SWING_PIVOT_Y + Math.cos(angle) * grab,
+  };
+}
+
+function nearHook(p, hook) {
+  const cx = p.x + p.w / 2;
+  const cy = p.y + p.h * 0.35;
+  return Math.abs(cx - hook.x) < 24 && Math.abs(cy - hook.y) < 26;
+}
+
+function attachToSwing(p, t) {
+  const hook = swingHook(t);
+  p.x = hook.x - p.w / 2;
+  p.y = hook.y - 10;
+  p.vx = 0;
+  p.vy = 0;
+  p.onGround = false;
+  p.walking = false;
+  p.climbing = false;
+  p.sliding = false;
+  p.dir = hook.x >= SWING_PIVOT_X ? 1 : -1;
+}
+
 function drawSwing(t) {
-  if (state.level !== 0) return;
+  if (!yardHasSwing()) return;
   const img = art?.swing;
   if (!img) return;
-  const destH = SWING_LEN;
-  const destW = Math.max(16, Math.round(img.width * (destH / img.height)));
+  const { destW, destH } = swingSize();
   const angle = swingAngle(t);
   ctx.save();
   ctx.imageSmoothingEnabled = true;
@@ -919,9 +996,9 @@ function drawWorld(t) {
     if (!blink) {
       let frames = art?.hero?.run;
       let frameIndex = Math.floor(hero.anim);
-      if (hero.climbing) {
+      if (hero.swinging || hero.climbing) {
         frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-        if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
+        if (hero.swinging || (!hero.sliding && Math.abs(hero.vy) <= 20)) frameIndex = 0;
       } else if (!hero.onGround && art?.hero?.jump?.length) {
         frames = art.hero.jump;
         frameIndex = hero.vy < 0 ? Math.min(1, frames.length - 1) : 0;
@@ -958,6 +1035,7 @@ function drawWorld(t) {
 
 function tick(ts) {
   if (!running && state.phase !== "paused") return;
+  worldT = ts / 1000;
   const raw = Math.min(0.033, (ts - last) / 1000 || 0.016);
   last = ts;
   const dt = raw * state.speed;
@@ -966,8 +1044,10 @@ function tick(ts) {
     updatePlayer(dt);
     for (const e of state.enemies) updateEnemy(e, dt);
     hud();
+  } else if (state.phase === "paused" && state.player?.swinging) {
+    attachToSwing(state.player, worldT);
   }
-  drawWorld(ts / 1000);
+  drawWorld(worldT);
   if (now() < tipUntil && tipText) {
     hooks.onTip?.(tipText, tipUntil - now());
   } else if (tipText) {

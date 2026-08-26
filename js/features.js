@@ -22,7 +22,7 @@ export const FEATURES = [
     title: "Moving around",
     items: [
       "Walk with A / D, arrows, or O / P. Let go and he stands still — no running on the spot",
-      "Climb ladders with up / down. Standing on a ledge with a ladder under your feet, press down to climb down. Jumping onto a ladder pulls you onto the pipes. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone drops you until you grab with up / W",
+      "Climb ladders with up / down. Standing on a ledge with a ladder under your feet, press down to climb down. Jumping onto a ladder pulls you onto the pipes. Space or up jumps off a floor. On a ladder, Space plus left or right leaps off; Space alone drops you until you grab with up / W. Yard 1’s crane hook: jump on, swing, then Space plus a direction to leap off",
       "Climb poses are just the scavenger — the rusted pipe ladder is in the yard, not on the sprite. Hang still when you are not moving",
       "Touch a scrap bot, drone, crawler, hunter, orb, crusher, or a live floor and you lose a life",
     ],
@@ -42,7 +42,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect. Yard 1 has a crane hook swinging between the top ledges",
+      "Yards 1–3: run, climb, collect. Yard 1 has a crane hook between the mid walkways — jump on, swing, leap off",
       "Yard 4: moving platforms",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",
