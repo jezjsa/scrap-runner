@@ -5,16 +5,26 @@ function isKeep(ch) {
   return "SHCBRDXUWGMKPo><E".includes(ch);
 }
 
+function isLadderChar(ch) {
+  return ch === "L" || ch === "+";
+}
+
 function connectLaddersToFloor(grid) {
   const cells = grid.map((row) => row.split(""));
   const floorY = ROWS - 1;
-  for (let x = 0; x < COLS; x += 1) {
-    let last = -1;
-    for (let y = 0; y < floorY; y += 1) {
-      if (cells[y][x] === "L" || cells[y][x] === "+") last = y;
+  let firstLedge = -1;
+  for (let y = floorY - 1; y >= 0; y -= 1) {
+    if (cells[y].some((ch) => ch === "=" || ch === "+")) {
+      firstLedge = y;
+      break;
     }
-    if (last < 0) continue;
-    for (let y = last + 1; y < floorY; y += 1) {
+  }
+  if (firstLedge < 0) return grid;
+  for (let x = 0; x < COLS; x += 1) {
+    const onLedge = isLadderChar(cells[firstLedge][x]);
+    const aboveLedge = firstLedge > 0 && isLadderChar(cells[firstLedge - 1][x]);
+    if (!onLedge && !aboveLedge) continue;
+    for (let y = firstLedge; y < floorY; y += 1) {
       const ch = cells[y][x];
       if (ch === "=") cells[y][x] = "+";
       else if (ch === "." || ch === " ") cells[y][x] = "L";

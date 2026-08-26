@@ -553,7 +553,7 @@ function updatePlayer(dt) {
   const onSolidFloor = p.onGround && feetCh !== "+" && feetCh !== "L";
 
   const canClimb = !p.swinging && !leapedFromSwing
-    && (onLadder(p) || ((down || p.climbing || p.sliding) && ladderBeneath(p)));
+    && (onLadder(p) || ((down || p.sliding) && ladderBeneath(p)));
   if (canClimb && (up || down || p.climbing || p.sliding)) {
     if (hop && (left || right)) {
       p.climbing = false;
@@ -572,6 +572,10 @@ function updatePlayer(dt) {
       p.vx = 0;
       snapToLadder(p);
       p.walking = false;
+      if (!isLadder(tileAt(ladderCol(p), Math.floor((p.y + 2) / TILE)))) {
+        p.vy = 0;
+        if (p.onGround) p.climbing = false;
+      }
     } else if ((hop || p.sliding) && !onSolidFloor) {
       p.climbing = true;
       p.sliding = true;
@@ -1203,6 +1207,29 @@ function tick(ts) {
   requestAnimationFrame(tick);
 }
 
+function isLocalTest() {
+  return Boolean(import.meta.env.DEV) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+}
+
+function requestedYard() {
+  if (!isLocalTest()) return 0;
+  const raw = new URLSearchParams(location.search).get("yard");
+  const n = Number.parseInt(raw ?? "", 10);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(TOTAL_LEVELS - 1, n - 1));
+}
+
+function jumpToYard(index) {
+  if (!isLocalTest()) return;
+  state.level = Math.max(0, Math.min(TOTAL_LEVELS - 1, index));
+  parseLevel(state.level);
+  state.phase = "play";
+  running = true;
+  last = now();
+  showTip(`${LEVELS[state.level].name}  ·  local test`, 1800);
+  hud();
+}
+
 function bindKeys() {
   window.addEventListener("keydown", (event) => {
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
@@ -1211,6 +1238,10 @@ function bindKeys() {
     }
     keys.add(key);
     if (key === "m") hooks.onMute?.();
+    if (isLocalTest() && (event.key === "[" || event.key === "]")) {
+      event.preventDefault();
+      jumpToYard(state.level + (event.key === "]" ? 1 : -1));
+    }
   });
   window.addEventListener("keyup", (event) => {
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
@@ -1240,16 +1271,19 @@ export function getDifficulty() {
 
 export function startRun() {
   const spec = DIFFICULTIES[state.difficulty];
+  const start = requestedYard();
   state.phase = "play";
-  state.level = 0;
+  state.level = start;
   state.lives = spec.lives;
   state.score = 0;
   state.extraAt = 10000;
   state.startedAt = now();
-  parseLevel(0);
+  parseLevel(start);
   running = true;
   last = now();
-  showTip(LEVELS[0].blurb, 2600);
+  showTip(isLocalTest() && start > 0
+    ? `${LEVELS[start].name}  ·  local test`
+    : LEVELS[start].blurb, 2600);
   hud();
   requestAnimationFrame(tick);
 }
