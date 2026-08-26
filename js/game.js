@@ -197,15 +197,51 @@ function snapToLadder(p) {
   p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
 }
 
+function ladderRunTopTy(col, nearTy) {
+  let ty = Math.max(0, Math.min(ROWS - 1, nearTy));
+  if (!isLadder(tileAt(col, ty))) {
+    for (const d of [1, -1, 2, -2]) {
+      if (isLadder(tileAt(col, ty + d))) {
+        ty += d;
+        break;
+      }
+    }
+  }
+  while (ty > 0 && isLadder(tileAt(col, ty - 1))) ty -= 1;
+  return ty;
+}
+
 function climbExitLedge(p) {
   const col = ladderCol(p);
-  const headTy = Math.floor((p.y + 2) / TILE);
-  for (const ty of [headTy, headTy + 1, headTy + 2]) {
+  const topTy = ladderRunTopTy(col, Math.floor((p.y + 8) / TILE));
+  for (const ty of [topTy, topTy + 1, topTy - 1]) {
     for (const dx of [-1, 0, 1]) {
-      if (isFloorChar(tileAt(col + dx, ty))) return beamTop(ty);
+      if (isFloorChar(tileAt(col + dx, ty))) return { y: beamTop(ty), ty, col };
     }
   }
   return null;
+}
+
+function dismountLadder(p, left, right) {
+  const land = climbExitLedge(p);
+  if (!land) return false;
+  const col = land.col;
+  let side = left ? -1 : right ? 1 : p.dir;
+  if (!isFloorChar(tileAt(col + side, land.ty))) {
+    if (isFloorChar(tileAt(col - 1, land.ty))) side = -1;
+    else if (isFloorChar(tileAt(col + 1, land.ty))) side = 1;
+  }
+  p.climbing = false;
+  p.sliding = false;
+  p.climbLock = 0.45;
+  p.ignoreUpJump = true;
+  p.onGround = false;
+  p.y = land.y - p.h - 2;
+  p.vy = -180;
+  p.dir = side;
+  p.x += side * 12;
+  p.vx = side * 150;
+  return true;
 }
 
 function eachLadderRun(fn) {
@@ -499,6 +535,8 @@ function makePlayer(x, y) {
     swinging: false,
     swingArmed: false,
     swingLock: 0,
+    climbLock: 0,
+    ignoreUpJump: false,
   };
 }
 
@@ -547,6 +585,8 @@ function updatePlayer(dt) {
   let leapedFromSwing = false;
 
   p.swingLock = Math.max(0, p.swingLock - dt);
+  p.climbLock = Math.max(0, p.climbLock - dt);
+  if (p.ignoreUpJump && !up) p.ignoreUpJump = false;
   if (yardHasSwing()) {
     if (p.swinging) {
       if (!hop) p.swingArmed = true;
@@ -597,7 +637,8 @@ function updatePlayer(dt) {
   );
   const onSolidFloor = p.onGround && feetCh !== "+" && feetCh !== "L";
 
-  const canClimb = !p.swinging && !leapedFromSwing
+  const canClimb = !p.swinging && !leapedFromSwing && (p.climbLock <= 0 || down)
+    && (!p.ignoreUpJump || down)
     && (onLadder(p) || ((down || p.sliding) && ladderBeneath(p)));
   if (canClimb && (up || down || p.climbing || p.sliding)) {
     if (hop && (left || right)) {
@@ -611,28 +652,32 @@ function updatePlayer(dt) {
       p.x += p.dir * 10;
       sfx.jump();
     } else if (up) {
-      p.sliding = false;
-      p.climbing = true;
-      p.vy = -110;
-      p.vx = 0;
-      snapToLadder(p);
-      p.walking = false;
-      if (!isLadder(tileAt(ladderCol(p), Math.floor((p.y + 2) / TILE)))) {
-        const land = climbExitLedge(p);
-        if (land != null && p.y + p.h > land - 4) {
-          p.climbing = false;
-          p.sliding = false;
-          p.onGround = false;
-          p.vy = -220;
-          if (left || right) {
-            p.dir = left ? -1 : 1;
-            p.vx = p.dir * 90;
-            p.x += p.dir * 4;
-          }
-        } else {
-          p.vy = 0;
-          if (p.onGround) p.climbing = false;
-        }
+      const col = ladderCol(p);
+      const topTy = ladderRunTopTy(col, Math.floor((p.y + 8) / TILE));
+      const land = climbExitLedge(p);
+      const alreadyOnTop = land != null && p.onGround && p.y + p.h <= land.y + 4;
+      const comingFromBelow = land != null && p.y + p.h > land.y + 6;
+      const feetNearTop = land != null && p.y + p.h <= land.y + TILE;
+      const pastPipes = p.y + 8 < topTy * TILE;
+      if (alreadyOnTop) {
+        p.climbing = false;
+        p.sliding = false;
+      } else if (p.climbing && comingFromBelow && (feetNearTop || pastPipes) && dismountLadder(p, left, right)) {
+        p.walking = left || right;
+      } else if (pastPipes && !land) {
+        p.sliding = false;
+        p.climbing = true;
+        p.vy = 0;
+        p.vx = 0;
+        snapToLadder(p);
+        p.walking = false;
+      } else {
+        p.sliding = false;
+        p.climbing = true;
+        p.vy = -110;
+        p.vx = 0;
+        snapToLadder(p);
+        p.walking = false;
       }
     } else if ((hop || p.sliding) && !onSolidFloor) {
       p.climbing = true;
@@ -674,7 +719,7 @@ function updatePlayer(dt) {
     }
     p.vx += conveyorAt(p);
     if (p.riding) p.vx += p.riding.dir * p.riding.speed;
-    if (jump && p.onGround && !down) {
+    if (jump && p.onGround && !down && !(p.ignoreUpJump && !hop)) {
       p.vy = -330;
       p.onGround = false;
       sfx.jump();

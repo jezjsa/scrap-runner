@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T12:42:00+01:00",
+    title: "Off the last rung",
+    items: [
+      "Climbing to the top of a ladder now pops you onto the walkway — hold up and you leave the pipes, then walk left or right. You should not need to jump off",
+    ],
+  },
+  {
     at: "2026-08-26T12:28:00+01:00",
     title: "Cells keep their shape",
     items: [
