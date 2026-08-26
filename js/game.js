@@ -694,9 +694,11 @@ function drawPlatform(x, y, w, h, color = "#6a3a22") {
 }
 
 function drawWorld(t) {
-  ctx.fillStyle = "#0a0806";
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
   if (art?.sky) ctx.drawImage(art.sky, 0, 0, WIDTH, HEIGHT);
+  else {
+    ctx.fillStyle = "#141210";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
   if (art?.midground) ctx.drawImage(art.midground, 0, 0, WIDTH, HEIGHT);
   if (art?.frame) ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
 
