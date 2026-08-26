@@ -596,6 +596,7 @@ function makePlayer(x, y) {
     swinging: false,
     swingArmed: false,
     swingLock: 0,
+    swingTravel: null,
     climbLock: 0,
     ignoreUpJump: false,
   };
@@ -655,6 +656,7 @@ function updatePlayer(dt) {
         p.swinging = false;
         p.swingArmed = false;
         p.swingLock = 0.4;
+        p.swingTravel = null;
         p.dir = left ? -1 : 1;
         p.vx = p.dir * 240;
         p.vy = -300;
@@ -663,6 +665,7 @@ function updatePlayer(dt) {
         sfx.jump();
       } else {
         attachToSwing(p, worldT);
+        updateSwingFacing(p, worldT);
       }
     } else {
       tryGrabSwing(p);
@@ -1061,6 +1064,12 @@ function swingAngle(t) {
   return SWING_AMP * Math.sin(t * SWING_HZ * Math.PI * 2);
 }
 
+function swingTravelDir(t) {
+  const phase = Math.cos(t * SWING_HZ * Math.PI * 2);
+  if (Math.abs(phase) < 0.06) return 0;
+  return phase > 0 ? -1 : 1;
+}
+
 function swingSize() {
   const img = art?.swing;
   const destH = SWING_LEN;
@@ -1125,6 +1134,7 @@ function tryGrabSwing(p) {
   if (!nearSwing(p, worldT)) return;
   p.swinging = true;
   p.swingArmed = !keys.has(" ");
+  p.swingTravel = null;
   attachToSwing(p, worldT);
 }
 
@@ -1138,7 +1148,19 @@ function attachToSwing(p, t) {
   p.walking = false;
   p.climbing = false;
   p.sliding = false;
-  p.dir = hook.x >= SWING_PIVOT_X ? 1 : -1;
+}
+
+function updateSwingFacing(p, t) {
+  const travel = swingTravelDir(t);
+  if (!travel) return;
+  if (p.swingTravel == null) {
+    p.swingTravel = travel;
+    return;
+  }
+  if (travel !== p.swingTravel) {
+    p.dir = travel;
+    p.swingTravel = travel;
+  }
 }
 
 function drawSwing(t) {

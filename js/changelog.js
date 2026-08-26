@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T13:36:00+01:00",
+    title: "Face the leap",
+    items: [
+      "Grabbing the crane hook no longer spins the scavenger around. He keeps the way he was facing, then turns when the swing turns around",
+    ],
+  },
+  {
     at: "2026-08-26T13:32:00+01:00",
     title: "Swing to the right",
     items: [
