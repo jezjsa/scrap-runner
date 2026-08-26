@@ -1,6 +1,29 @@
 export const COLS = 32;
 export const ROWS = 18;
 
+function isKeep(ch) {
+  return "SHCBRDXUWGMKPo><E".includes(ch);
+}
+
+function connectLaddersToFloor(grid) {
+  const cells = grid.map((row) => row.split(""));
+  const floorY = ROWS - 1;
+  for (let x = 0; x < COLS; x += 1) {
+    let last = -1;
+    for (let y = 0; y < floorY; y += 1) {
+      if (cells[y][x] === "L" || cells[y][x] === "+") last = y;
+    }
+    if (last < 0) continue;
+    for (let y = last + 1; y < floorY; y += 1) {
+      const ch = cells[y][x];
+      if (ch === "=") cells[y][x] = "+";
+      else if (ch === "." || ch === " ") cells[y][x] = "L";
+      else if (isKeep(ch)) break;
+    }
+  }
+  return cells.map((row) => row.join(""));
+}
+
 function pack(name, blurb, raw) {
   const rows = raw.replace(/^\n/, "").replace(/\n$/, "").split("\n");
   if (rows.length !== ROWS) {
@@ -11,7 +34,7 @@ function pack(name, blurb, raw) {
     if (line.length !== COLS) throw new Error(`${name}: bad row ${line}`);
     return line;
   });
-  return { name, blurb, grid };
+  return { name, blurb, grid: connectLaddersToFloor(grid) };
 }
 
 export const LEVELS = [
