@@ -1,0 +1,28 @@
+---
+description: Keep walkable ledges low enough that a jump stays on the canvas
+globs: js/levels.js
+alwaysApply: true
+---
+
+# Yard headroom
+
+Never put a walkable ledge on rows 0–3. The scavenger is drawn 60px tall and a floor jump rises about 56px. A ledge on row 4 or lower leaves that room above him.
+
+Walkable tiles: `=`, `+`, `>`, `<`, `E`, `M`, `K`.
+
+`pack()` calls `ensureHeadroom()` and throws if a ledge is still too high. Do not disable that check. If a new yard cannot drop, add spare air rows in the middle — do not raise the top deck.
+
+```
+# BAD — jump leaves the canvas
+.C............................C.   row 0
+====....MMMMMM........MMMM======   row 1
+
+# GOOD — first walkable row is 4+
+................................   row 0
+................................   row 1
+................................   row 2
+.C............................C.   row 3
+====....MMMMMM........MMMM======   row 4
+```
+
+Moving plates use the same beam height as static walkways. They still must start on row 4 or below.

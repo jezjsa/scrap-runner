@@ -5,6 +5,9 @@ import { sfx } from "./audio.js";
 export const TILE = 32;
 export const WIDTH = COLS * TILE;
 export const HEIGHT = ROWS * TILE;
+const HERO_DRAW_H = 64;
+const HERO_DRAW_SINK = 4;
+const HERO_VISUAL_H = HERO_DRAW_H - HERO_DRAW_SINK;
 
 const SWING_AMP = 0.68;
 const SWING_HZ = 0.42;
@@ -463,7 +466,7 @@ function parseLevel(index) {
         const len = eatRun(x, y, "M");
         state.movers.push({
           x: x * TILE,
-          y: y * TILE,
+          y: beamTop(y),
           w: len * TILE,
           h: 10,
           dir: 1,
@@ -800,6 +803,11 @@ function updatePlayer(dt) {
 
   moveAxis(p, p.vx * dt, 0);
   moveAxis(p, 0, p.vy * dt);
+  const head = p.y + p.h - HERO_VISUAL_H;
+  if (head < 2) {
+    p.y += 2 - head;
+    if (p.vy < 0) p.vy = 0;
+  }
   if (!p.swinging && !leapedFromSwing) tryGrabSwing(p);
   if (p.y > HEIGHT + 40) hurt();
 
@@ -1358,7 +1366,7 @@ function drawWorld(t) {
       }
       const frame = frames?.[frameIndex % (frames?.length || 1)];
       if (frame) {
-        drawSpriteAtHeight(ctx, frame, hero.x + hero.w / 2, hero.y + hero.h, 64, hero.dir < 0);
+        drawSpriteAtHeight(ctx, frame, hero.x + hero.w / 2, hero.y + hero.h, HERO_DRAW_H, hero.dir < 0);
       }
       else {
         ctx.fillStyle = "#6a7a3a";

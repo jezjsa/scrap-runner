@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T14:55:00+01:00",
+    title: "Room to jump",
+    items: [
+      "Every yard’s highest walkway now sits lower — jump from the top ledge and you stay inside the yard. Yard 5’s drifting plates were shoving you out the top",
+    ],
+  },
+  {
     at: "2026-08-26T14:50:00+01:00",
     title: "The yard drifts again",
     items: [

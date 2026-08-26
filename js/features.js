@@ -2,7 +2,7 @@ export const FEATURES = [
   {
     title: "Yards",
     items: [
-      "Each level is one screen of rusted platforms, pipe ladders, and walkways",
+      "Each level is one screen of rusted platforms, pipe ladders, and walkways. The highest ledge always leaves room above for the scavenger plus a full jump — you should not leave the top of the yard",
       "Ladders punch through floors and stick a little above each ledge. Hold up to the last rung and you hop onto the walkway — then walk left or right. Every ladder is the same width",
       "Every yard has a ladder from the floor up to the first ledge. Yard 1’s right stack stops at that ledge — swing the crane hook to get across",
       "Collect every Energy Cell — each one sits on a faint pulsing green glow and draws at the sheet’s shape, not a stretched square. Grab one and green coin bubbles pop over his head, then fade. The vault door then opens — walk in to clear the yard",
@@ -43,7 +43,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways — the right ladders stop at the first ledge, so you swing across. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3’s top walkways sit low enough that you stay on screen, and scrap rats patrol the mid ledges",
+      "Yards 1–3: run, climb, collect. A rusted vault door sits flush with the right edge of every yard. Yard 1 has a crane hook between the mid walkways — the right ladders stop at the first ledge, so you swing across. Yard 2 has a ladder up to the centre ledge — the bots start on their own walkways, not on top of you. Yard 3 has scrap rats on the mid ledges",
       "Yard 4: moving platforms, plus a walker, a hunter, and spider crawlers from the enemy sheet",
       "Yard 5: the crane hook hangs over the drifting spans again",
       "Yard 6: collapsing platforms",

@@ -1,6 +1,11 @@
 export const COLS = 32;
 export const ROWS = 18;
 
+/** First row a walkable ledge may sit on. Row 4 leaves room for the 60px sprite plus a 56px jump. */
+export const MIN_WALK_ROW = 4;
+
+const WALK_CHARS = "=+><EMK";
+
 function isKeep(ch) {
   return "SHCBRDXUWGMKPo><EFT".includes(ch);
 }
@@ -46,6 +51,57 @@ function punchLaddersThroughLedges(grid) {
   return cells.map((row) => row.join(""));
 }
 
+function isWalkRow(row) {
+  return row.split("").some((ch) => WALK_CHARS.includes(ch));
+}
+
+function highestWalkRow(grid) {
+  return grid.findIndex((row) => isWalkRow(row));
+}
+
+function rowIsSpacer(row) {
+  return row.split("").every((ch) => ch === "." || ch === " " || ch === "L");
+}
+
+function rowIsAir(row) {
+  return row.split("").every((ch) => ch === "." || ch === " ");
+}
+
+function findSpacerRow(grid, afterY) {
+  const floorY = ROWS - 1;
+  const air = [];
+  const ladder = [];
+  for (let y = afterY; y < floorY - 1; y += 1) {
+    const row = grid[y];
+    if (row.includes("S") || row.includes("H")) continue;
+    if (!rowIsSpacer(row)) continue;
+    if (rowIsAir(row)) air.push(y);
+    else ladder.push(y);
+  }
+  return air[0] ?? ladder[0] ?? -1;
+}
+
+function ensureHeadroom(grid, name) {
+  const next = grid.slice();
+  let guard = 0;
+  while (guard < 8) {
+    const top = highestWalkRow(next);
+    if (top < 0 || top >= MIN_WALK_ROW) break;
+    const removeAt = findSpacerRow(next, top + 2);
+    if (removeAt < 0) {
+      throw new Error(`${name}: no spare row to drop ledges to row ${MIN_WALK_ROW}`);
+    }
+    next.splice(removeAt, 1);
+    next.unshift(".".repeat(COLS));
+    guard += 1;
+  }
+  const top = highestWalkRow(next);
+  if (top >= 0 && top < MIN_WALK_ROW) {
+    throw new Error(`${name}: walkable ledge on row ${top}, need row ${MIN_WALK_ROW}+`);
+  }
+  return next;
+}
+
 function pack(name, blurb, raw, opts = {}) {
   const rows = raw.replace(/^\n/, "").replace(/\n$/, "").split("\n");
   if (rows.length !== ROWS) {
@@ -59,7 +115,7 @@ function pack(name, blurb, raw, opts = {}) {
   return {
     name,
     blurb,
-    grid: punchLaddersThroughLedges(connectLaddersToFloor(grid, opts.floorLadderCols)),
+    grid: punchLaddersThroughLedges(connectLaddersToFloor(ensureHeadroom(grid, name), opts.floorLadderCols)),
   };
 }
 
@@ -385,22 +441,22 @@ export const LEVELS = [
 ================================
 `),
   pack("Yard 17", "Orbs ride the rails.", `
+................................
+................................
+................................
 .C............................C.
 ====oooooooooooooooooooooooo====
-...L........................L...
+...o........................o...
 ...L....C..............C....L...
 ...+..======........======..+...
-...o........................o...
 ...o........................o...
 ...+..........C.............+...
 ...o........=======.........o...
 ...o........................o...
 .D.L........................L.D.
 ...+....=======....=======..+...
-...L........................L...
 .S.L.....................H..L...
 ====......................======
-................................
 ......C..............C..........
 ================================
 `),
