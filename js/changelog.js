@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T09:32:00+01:00",
+    title: "A clear window",
+    items: [
+      "The rusted frame is the Photoshop file as-is — no extra fade or keying on top",
+    ],
+  },
+  {
     at: "2026-08-26T09:28:00+01:00",
     title: "The right jump",
     items: [

@@ -237,7 +237,7 @@ export async function loadArt() {
   return {
     sky,
     midground: midgroundImg,
-    frame: keyFull(frameImg),
+    frame: frameImg,
     hero,
     enemies: {
       bot: enemyFrames.slice(0, 4),

@@ -710,11 +710,6 @@ function drawWorld(t) {
     ctx.drawImage(art.midground, -40 + parallax * -34 - drift * 1.6, 8, WIDTH + 80, HEIGHT);
     ctx.globalAlpha = 1;
   }
-  if (art?.frame) {
-    ctx.globalAlpha = 0.4;
-    ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
-    ctx.globalAlpha = 1;
-  }
 
   for (let y = 0; y < ROWS; y += 1) {
     for (let x = 0; x < COLS; x += 1) {
@@ -839,6 +834,10 @@ function drawWorld(t) {
         ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
       }
     }
+  }
+
+  if (art?.frame) {
+    ctx.drawImage(art.frame, 0, 0, WIDTH, HEIGHT);
   }
 
   const def = LEVELS[state.level];
