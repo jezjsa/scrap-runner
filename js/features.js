@@ -3,7 +3,7 @@ export const FEATURES = [
     title: "Yards",
     items: [
       "Each level is one screen of rusted platforms, pipe ladders, and walkways",
-      "Ladders punch through floors — climb the full column from handle to feet. Every ladder is the same width",
+      "Ladders punch through floors and stick a little above each ledge. Climb to the top and you hop onto the walkway. Every ladder is the same width",
       "Every yard has a ladder from the floor up to the first ledge — Yard 1 has one on both sides",
       "Collect every Energy Cell — each one sits on a faint pulsing green glow. The vault door then opens — walk in to clear the yard",
       "Twenty yards. The layout gets meaner; a new mechanic lands every few screens",

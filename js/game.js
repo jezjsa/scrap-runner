@@ -197,6 +197,17 @@ function snapToLadder(p) {
   p.x = ladderCol(p) * TILE + (TILE - p.w) / 2;
 }
 
+function climbExitLedge(p) {
+  const col = ladderCol(p);
+  const headTy = Math.floor((p.y + 2) / TILE);
+  for (const ty of [headTy, headTy + 1, headTy + 2]) {
+    for (const dx of [-1, 0, 1]) {
+      if (isFloorChar(tileAt(col + dx, ty))) return beamTop(ty);
+    }
+  }
+  return null;
+}
+
 function eachLadderRun(fn) {
   for (let x = 0; x < COLS; x += 1) {
     let y = 0;
@@ -215,7 +226,7 @@ function eachLadderRun(fn) {
 function drawLadderRun(col, y0, y1) {
   const destW = 24;
   const x = col * TILE + (TILE - destW) / 2;
-  const topY = y0 * TILE;
+  const topY = y0 * TILE - 12;
   const botY = y1 * TILE;
   const kit = art?.ladder;
   ctx.imageSmoothingEnabled = false;
@@ -607,8 +618,21 @@ function updatePlayer(dt) {
       snapToLadder(p);
       p.walking = false;
       if (!isLadder(tileAt(ladderCol(p), Math.floor((p.y + 2) / TILE)))) {
-        p.vy = 0;
-        if (p.onGround) p.climbing = false;
+        const land = climbExitLedge(p);
+        if (land != null && p.y + p.h > land - 4) {
+          p.climbing = false;
+          p.sliding = false;
+          p.onGround = false;
+          p.vy = -220;
+          if (left || right) {
+            p.dir = left ? -1 : 1;
+            p.vx = p.dir * 90;
+            p.x += p.dir * 4;
+          }
+        } else {
+          p.vy = 0;
+          if (p.onGround) p.climbing = false;
+        }
       }
     } else if ((hop || p.sliding) && !onSolidFloor) {
       p.climbing = true;

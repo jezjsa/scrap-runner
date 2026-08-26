@@ -34,6 +34,17 @@ function connectLaddersToFloor(grid) {
   return cells.map((row) => row.join(""));
 }
 
+function punchLaddersThroughLedges(grid) {
+  const cells = grid.map((row) => row.split(""));
+  for (let x = 0; x < COLS; x += 1) {
+    for (let y = 1; y < ROWS; y += 1) {
+      if (!isLadderChar(cells[y][x])) continue;
+      if (cells[y - 1][x] === "=") cells[y - 1][x] = "+";
+    }
+  }
+  return cells.map((row) => row.join(""));
+}
+
 function pack(name, blurb, raw) {
   const rows = raw.replace(/^\n/, "").replace(/\n$/, "").split("\n");
   if (rows.length !== ROWS) {
@@ -44,7 +55,7 @@ function pack(name, blurb, raw) {
     if (line.length !== COLS) throw new Error(`${name}: bad row ${line}`);
     return line;
   });
-  return { name, blurb, grid: connectLaddersToFloor(grid) };
+  return { name, blurb, grid: punchLaddersThroughLedges(connectLaddersToFloor(grid)) };
 }
 
 export const LEVELS = [
