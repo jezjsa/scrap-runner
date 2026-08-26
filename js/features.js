@@ -69,7 +69,7 @@ export const FEATURES = [
   {
     title: "UI",
     items: [
-      "Parallax wasteland sky and midground behind the yard, rusted frame around the play",
+      "Parallax wasteland sky, midground, and rusted frame sit behind the yard. You, the bots, and the cells draw in front",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",
     ],
