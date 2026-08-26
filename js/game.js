@@ -690,6 +690,7 @@ function updatePlayer(dt) {
 
 function edgeAhead(body, dir) {
   const lookX = dir > 0 ? body.x + body.w + 2 : body.x - 2;
+  if (lookX < 4 || lookX >= WIDTH - 4) return true;
   const ground = supportedAt(lookX, body.y + body.h + 4);
   const wall = isGateAt(lookX, body.y + body.h / 2);
   return !ground || wall;
@@ -758,7 +759,7 @@ function updateEnemy(e, dt) {
 
   if (e.kind === "crawler" || !climbKinds) {
     if (edgeAhead(e, e.dir)) e.dir *= -1;
-  } else if (e.onGround && edgeAhead(e, e.dir) && !onLadder(e)) {
+  } else if (e.onGround && edgeAhead(e, e.dir)) {
     e.dir *= -1;
   }
 
