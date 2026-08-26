@@ -517,7 +517,7 @@ function updatePlayer(dt) {
   if (p.y > HEIGHT + 40) hurt();
 
   if (p.sliding) p.anim += dt * 14;
-  else if (p.climbing) p.anim += dt * 8;
+  else if (p.climbing && Math.abs(p.vy) > 20) p.anim += dt * 8;
   else if (p.walking) p.anim += dt * 10;
   else if (p.onGround) p.anim += dt * 2;
   p.invuln = Math.max(0, p.invuln - dt);
@@ -855,6 +855,7 @@ function drawWorld(t) {
       let frameIndex = Math.floor(hero.anim);
       if (hero.climbing) {
         frames = art?.hero?.climb?.length ? art.hero.climb : frames;
+        if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
       } else if (!hero.onGround && art?.hero?.jump?.length) {
         frames = art.hero.jump;
         frameIndex = hero.vy < 0 ? Math.min(1, frames.length - 1) : 0;

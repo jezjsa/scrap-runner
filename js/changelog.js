@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-26T10:36:00+01:00",
+    title: "Hang still",
+    items: [
+      "On a ladder he holds still when you are not climbing — the climb cycle only plays while you move up or down",
+    ],
+  },
+  {
     at: "2026-08-26T10:34:00+01:00",
     title: "Drop until you grab",
     items: [
