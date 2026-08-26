@@ -114,7 +114,9 @@ function floorY(px, prevY, nextY, throughHoles = false) {
   const tx = Math.floor(px / TILE);
   const ty = Math.floor(nextY / TILE);
   const ch = tileAt(tx, ty);
-  if (isFloorChar(ch) && !(throughHoles && ch === "+")) {
+  const dropThrough =
+    throughHoles && (ch === "+" || (nextY > prevY && isLadder(tileAt(tx, ty + 1))));
+  if (isFloorChar(ch) && !dropThrough) {
     const top = beamTop(ty);
     if (prevY <= top + 1 && nextY >= top) return top;
   }
@@ -150,15 +152,26 @@ function onLadder(body) {
   return false;
 }
 
+function ladderBeneath(body) {
+  const feetTy = Math.floor((body.y + body.h + 1) / TILE);
+  const xs = [body.x - 12, body.x + 2, body.x + body.w / 2, body.x + body.w - 2, body.x + body.w + 12];
+  for (const x of xs) {
+    const tx = Math.floor(x / TILE);
+    if (isLadder(tileAt(tx, feetTy)) || isLadder(tileAt(tx, feetTy + 1))) return true;
+  }
+  return false;
+}
+
 function ladderCol(body) {
   const midX = body.x + body.w / 2;
   const { ys } = ladderSamples(body);
+  const searchY = [...ys, body.y + body.h + TILE / 2];
   let best = Math.floor(midX / TILE);
   let bestDist = Infinity;
   const tx0 = Math.floor(body.x / TILE) - 1;
   const tx1 = Math.floor((body.x + body.w) / TILE) + 1;
   for (let tx = tx0; tx <= tx1; tx += 1) {
-    for (const y of ys) {
+    for (const y of searchY) {
       if (!isLadder(tileAt(tx, Math.floor(y / TILE)))) continue;
       const dist = Math.abs(midX - (tx * TILE + TILE / 2));
       if (dist < bestDist) {
@@ -477,7 +490,8 @@ function updatePlayer(dt) {
   );
   const onSolidFloor = p.onGround && feetCh !== "+" && feetCh !== "L";
 
-  if (onLadder(p) && (up || down || p.climbing || p.sliding)) {
+  const canClimb = onLadder(p) || ((down || p.climbing || p.sliding) && ladderBeneath(p));
+  if (canClimb && (up || down || p.climbing || p.sliding)) {
     if (hop && (left || right)) {
       p.climbing = false;
       p.sliding = false;
