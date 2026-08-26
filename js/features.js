@@ -42,7 +42,7 @@ export const FEATURES = [
   {
     title: "Kit that shows up later",
     items: [
-      "Yards 1–3: run, climb, collect",
+      "Yards 1–3: run, climb, collect. Yard 1 has a crane hook swinging between the top ledges",
       "Yard 4: moving platforms",
       "Yard 6: collapsing platforms",
       "Yard 8: drones",

@@ -5,6 +5,7 @@ import laddersUrl from "../assets/ladders.png";
 import skyUrl from "../assets/sky.png";
 import midUrl from "../assets/midground.png";
 import frameUrl from "../assets/frame.png";
+import swingUrl from "../assets/swing.png";
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -250,7 +251,7 @@ function classifyHero(blobs) {
 }
 
 export async function loadArt() {
-  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg] = await Promise.all([
+  const [heroImg, enemyImg, cellImg, ladderImg, sky, midgroundImg, frameImg, swingImg] = await Promise.all([
     loadImage(heroUrl),
     loadImage(enemiesUrl),
     loadImage(cellsUrl),
@@ -258,6 +259,7 @@ export async function loadArt() {
     loadImage(skyUrl),
     loadImage(midUrl),
     loadImage(frameUrl),
+    loadImage(swingUrl),
   ]);
 
   const hero = classifyHero(extractBlobs(heroImg, 4000, { key: false, minAlpha: 40, maxW: 400 }));
@@ -278,6 +280,7 @@ export async function loadArt() {
     },
     cells: cellFrames,
     ladder,
+    swing: swingImg,
   };
 }
 

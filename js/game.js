@@ -6,6 +6,12 @@ export const TILE = 32;
 export const WIDTH = COLS * TILE;
 export const HEIGHT = ROWS * TILE;
 
+const SWING_PIVOT_X = WIDTH / 2;
+const SWING_PIVOT_Y = 2;
+const SWING_LEN = 240;
+const SWING_AMP = 0.28;
+const SWING_HZ = 0.45;
+
 const DIFFICULTIES = {
   easy: { lives: 5, enemy: 0.82, label: "Easy" },
   medium: { lives: 4, enemy: 1, label: "Medium" },
@@ -761,6 +767,25 @@ function endRun(won) {
   });
 }
 
+function swingAngle(t) {
+  return SWING_AMP * Math.sin(t * SWING_HZ * Math.PI * 2);
+}
+
+function drawSwing(t) {
+  if (state.level !== 0) return;
+  const img = art?.swing;
+  if (!img) return;
+  const destH = SWING_LEN;
+  const destW = Math.max(16, Math.round(img.width * (destH / img.height)));
+  const angle = swingAngle(t);
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.translate(SWING_PIVOT_X, SWING_PIVOT_Y);
+  ctx.rotate(angle);
+  ctx.drawImage(img, -destW / 2, 0, destW, destH);
+  ctx.restore();
+}
+
 function drawPlatform(x, y, w, h, color = "#6a3a22") {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, w, h);
@@ -805,6 +830,7 @@ function drawWorld(t) {
   }
 
   eachLadderRun(drawLadderRun);
+  drawSwing(t);
 
   for (const plat of state.movers) drawPlatform(plat.x, plat.y, plat.w, plat.h, "#8a4a28");
   for (const plate of state.collapses) {
