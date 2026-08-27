@@ -1,9 +1,9 @@
 export const CHANGELOG = [
   {
-    at: "2026-08-27T15:55:00+01:00",
-    title: "Three layers again",
+    at: "2026-08-27T16:00:00+01:00",
+    title: "Leave the blacks",
     items: [
-      "Sky, midground, and the rusted frame stack as a parallax again — empty space on those files is fully transparent, so you can see through to the layer behind",
+      "The sky, midground, and rusted frame draw as the files — no black keying or extra alpha on those layers. Dark metal stays dark",
     ],
   },
   {
