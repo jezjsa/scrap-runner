@@ -78,7 +78,7 @@ export const FEATURES = [
   {
     title: "UI",
     items: [
-      "Sky and midground drift behind the rusted frame as you move. You, the bots, the cells, and the vault door draw in front of the scrap",
+      "Three backdrop layers: sky, midground, then the rusted frame. Empty space on those files is fully transparent so the stack reads. Sky and midground drift as you move. You, the bots, the cells, and the vault door draw in front of the scrap",
       "Jump uses the leap poses from the sheet. The scavenger stays solid in the air, and draws at the sheet’s proportions instead of a stretched box",
       "Header: lives, score, level, cells, mode, online, plus mute / speed / pause / reset",
       "Left rail: Online and Account. Right rail: Back to Games, Game Features, Keys, News",
