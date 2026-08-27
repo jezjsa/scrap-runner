@@ -1,5 +1,12 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-27T16:06:00+01:00",
+    title: "Just you in the yard",
+    items: [
+      "Local play no longer lists leftover scavengers from the shared online table — you only see yourself until it goes live",
+    ],
+  },
+  {
     at: "2026-08-27T16:04:00+01:00",
     title: "The sky behind the scrap",
     items: [

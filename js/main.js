@@ -118,12 +118,16 @@ function paintAvatars() {
   `).join("");
 }
 
+function isLocalHost() {
+  return /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+}
+
 function paintOnline(rows) {
   const list = document.getElementById("online-list");
   const empty = document.getElementById("online-empty");
   if (!list) return;
   const you = playerName() || "You";
-  const others = rows.filter((row) => !row.self);
+  const others = isLocalHost() ? [] : rows.filter((row) => !row.self);
   const mine = rows.find((row) => row.self);
   const shown = [{ name: you, self: true, version: mine?.version, avatar: currentUser()?.avatar }, ...others];
   if (empty) empty.classList.add("hidden");
@@ -357,7 +361,7 @@ void consumeAuth().then(() => {
 
 void watchLiveCount((count) => {
   const el = document.getElementById("stat-online");
-  if (el) el.textContent = String(Math.max(Number(count) || 0, 1));
+  if (el) el.textContent = String(isLocalHost() ? 1 : Math.max(Number(count) || 0, 1));
 });
 void watchLivePlayers(paintOnline);
 void watchScores(boardDifficulty, paintBoard).then((stop) => {

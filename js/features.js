@@ -71,7 +71,7 @@ export const FEATURES = [
     title: "Social / account",
     items: [
       "Same Arcade Engage magic-link account as Field Rush and No Brakes",
-      "Online list is who is in this yard, by browser",
+      "Online list is who is in this yard, by browser. Locally it is just you — leftover sessions from the shared table stay off the list",
       "Scoreboard sits under the playfield with avatars",
     ],
   },
