@@ -1,3 +1,4 @@
+import { playerCam } from "@playercam/browser";
 import { COLS, LEVELS, ROWS, TOTAL_LEVELS } from "./levels.js";
 import { drawSprite, drawSpriteAtHeight, drawSpriteFit, drawSpriteFromTop, loadArt } from "./sprites.js";
 import { sfx } from "./audio.js";
@@ -836,6 +837,7 @@ function updatePlayer(dt) {
       addScore(120 + state.level * 40);
       spawnCellBurst(p);
       sfx.collect();
+      playerCam.event("energy_cell", { yard: state.level + 1, cells: state.cellsGot });
       if (state.cellsGot >= state.cellsMax) {
         state.doorPhase = "opening";
         state.doorTimer = 0;
@@ -1007,6 +1009,7 @@ function hurt() {
   if (state.player.invuln > 0) return;
   sfx.die();
   state.lives -= 1;
+  playerCam.event("life_lost", { lives: state.lives, yard: state.level + 1 });
   if (state.lives <= 0) {
     endRun(false);
     return;
@@ -1021,6 +1024,7 @@ function beginExit() {
   const bonus = Math.max(0, Math.round((90 - elapsed) * (6 + state.level)));
   addScore(400 + state.level * 80 + bonus);
   sfx.clear();
+  playerCam.event("yard_complete", { yard: state.level + 1, score: state.score });
   state.phase = "exiting";
   state.doorPhase = "closing";
   state.doorTimer = 0;
@@ -1072,6 +1076,12 @@ function endRun(won) {
   state.phase = won ? "won" : "over";
   running = false;
   hud();
+  playerCam.event("run_over", {
+    won,
+    score: state.score,
+    yard: state.level + 1,
+    difficulty: state.difficulty,
+  });
   hooks.onEnd?.({
     won,
     score: state.score,
@@ -1381,38 +1391,17 @@ function drawWorld(t) {
     }
   }
 
-  const hero = state.player;
-  if (hero && state.phase !== "exiting") {
-    const blink = hero.invuln > 0 && Math.floor(hero.invuln * 12) % 2 === 0;
+  const pose = heroDrawPose();
+  if (pose && state.phase !== "exiting") {
+    const blink = pose.hero.invuln > 0 && Math.floor(pose.hero.invuln * 12) % 2 === 0;
     if (!blink) {
-      let frames = art?.hero?.run;
-      let frameIndex = Math.floor(hero.anim);
-      if (hero.swinging && hero.swingCatch >= 1 && art?.hero?.hang?.ride) {
-        const hang = art.hero.hang;
-        const spinning = hero.swingSpin > 0 && hang.spin;
-        const settle = !spinning && hang.settle && Math.abs(swingAngle(worldT)) < 0.22;
-        const hangFrame = spinning ? hang.spin : settle ? hang.settle : hang.ride;
-        const hook = swingHook(worldT);
-        drawSpriteFromTop(ctx, hangFrame, hook.x, hook.y - 8, HERO_HANG_H, !spinning && hero.dir < 0);
+      if (pose.mode === "hang") {
+        drawSpriteFromTop(ctx, pose.frame, pose.cx, pose.topY, pose.destH, pose.flip);
+      } else if (pose.frame) {
+        drawSpriteAtHeight(ctx, pose.frame, pose.cx, pose.feetY, pose.destH, pose.flip);
       } else {
-        if (hero.climbing) {
-          frames = art?.hero?.climb?.length ? art.hero.climb : frames;
-          if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
-        } else if ((!hero.onGround || (hero.swinging && hero.swingCatch < 1)) && art?.hero?.jump?.length) {
-          frames = art.hero.jump;
-          frameIndex = hero.vy < 0 || hero.swinging ? Math.min(1, frames.length - 1) : 0;
-        } else if (!hero.walking) {
-          frames = art?.hero?.idle?.length ? art.hero.idle : frames;
-          if (!art?.hero?.idle?.length) frameIndex = 0;
-        }
-        const frame = frames?.[frameIndex % (frames?.length || 1)];
-        if (frame) {
-          drawSpriteAtHeight(ctx, frame, hero.x + hero.w / 2, hero.y + hero.h, HERO_DRAW_H, hero.dir < 0);
-        }
-        else {
-          ctx.fillStyle = "#6a7a3a";
-          ctx.fillRect(hero.x, hero.y, hero.w, hero.h);
-        }
+        ctx.fillStyle = "#6a7a3a";
+        ctx.fillRect(pose.fallback.x, pose.fallback.y, pose.fallback.w, pose.fallback.h);
       }
     }
   }
@@ -1508,6 +1497,82 @@ function bindKeys() {
   });
 }
 
+function heroDrawPose() {
+  const hero = state.player;
+  if (!hero) return null;
+  if (hero.swinging && hero.swingCatch >= 1 && art?.hero?.hang?.ride) {
+    const hang = art.hero.hang;
+    const spinning = hero.swingSpin > 0 && hang.spin;
+    const settle = !spinning && hang.settle && Math.abs(swingAngle(worldT)) < 0.22;
+    const hangFrame = spinning ? hang.spin : settle ? hang.settle : hang.ride;
+    const hook = swingHook(worldT);
+    return {
+      hero,
+      mode: "hang",
+      frame: hangFrame,
+      cx: hook.x,
+      topY: hook.y - 8,
+      destH: HERO_HANG_H,
+      flip: !spinning && hero.dir < 0,
+    };
+  }
+  let frames = art?.hero?.run;
+  let frameIndex = Math.floor(hero.anim);
+  if (hero.climbing) {
+    frames = art?.hero?.climb?.length ? art.hero.climb : frames;
+    if (!hero.sliding && Math.abs(hero.vy) <= 20) frameIndex = 0;
+  } else if ((!hero.onGround || (hero.swinging && hero.swingCatch < 1)) && art?.hero?.jump?.length) {
+    frames = art.hero.jump;
+    frameIndex = hero.vy < 0 || hero.swinging ? Math.min(1, frames.length - 1) : 0;
+  } else if (!hero.walking) {
+    frames = art?.hero?.idle?.length ? art.hero.idle : frames;
+    if (!art?.hero?.idle?.length) frameIndex = 0;
+  }
+  return {
+    hero,
+    mode: "stand",
+    frame: frames?.[frameIndex % (frames?.length || 1)],
+    cx: hero.x + hero.w / 2,
+    feetY: hero.y + hero.h,
+    destH: HERO_DRAW_H,
+    flip: hero.dir < 0,
+    fallback: { x: hero.x, y: hero.y, w: hero.w, h: hero.h },
+  };
+}
+
+function heroVisibleBounds() {
+  const pose = heroDrawPose();
+  if (!pose || state.phase === "exiting") return null;
+  if (pose.mode === "hang") {
+    const width = pose.frame
+      ? Math.max(1, Math.round(pose.destH * (pose.frame.width / pose.frame.height)))
+      : 40;
+    return { x: pose.cx - width / 2, y: pose.topY, width, height: pose.destH };
+  }
+  if (pose.frame) {
+    const width = Math.max(1, Math.round(pose.destH * (pose.frame.width / pose.frame.height)));
+    return {
+      x: pose.cx - width / 2,
+      y: pose.feetY - pose.destH + HERO_DRAW_SINK,
+      width,
+      height: pose.destH,
+    };
+  }
+  return {
+    x: pose.fallback.x,
+    y: pose.fallback.y,
+    width: pose.fallback.w,
+    height: pose.fallback.h,
+  };
+}
+
+function startPlayerCam() {
+  playerCam.track("player", {
+    canvas,
+    getBounds: heroVisibleBounds,
+  });
+}
+
 export async function bootGame(target, nextHooks) {
   canvas = target;
   ctx = canvas.getContext("2d");
@@ -1515,6 +1580,7 @@ export async function bootGame(target, nextHooks) {
   art = await loadArt();
   bindKeys();
   parseLevel(0);
+  startPlayerCam();
   drawWorld(0);
   hud();
 }

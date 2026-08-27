@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@playercam/browser": "file:playercam-browser-0.1.0.tgz",
     "convex": "^1.44.0"
   },
   "devDependencies": {
