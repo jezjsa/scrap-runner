@@ -1,9 +1,16 @@
 export const CHANGELOG = [
   {
+    at: "2026-08-27T16:02:00+01:00",
+    title: "The sky behind the scrap",
+    items: [
+      "The sky shows through the empty space in the midground again — only the flat black fill is opened, not the dark rust",
+    ],
+  },
+  {
     at: "2026-08-27T16:00:00+01:00",
     title: "Leave the blacks",
     items: [
-      "The sky, midground, and rusted frame draw as the files — no black keying or extra alpha on those layers. Dark metal stays dark",
+      "The sky, midground, and rusted frame draw as the files — no extra fade on those layers. Dark metal stays dark",
     ],
   },
   {
