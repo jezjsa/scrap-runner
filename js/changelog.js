@@ -1,9 +1,9 @@
 export const CHANGELOG = [
   {
-    at: "2026-08-27T16:02:00+01:00",
+    at: "2026-08-27T16:04:00+01:00",
     title: "The sky behind the scrap",
     items: [
-      "The sky shows through the empty space in the midground again — only the flat black fill is opened, not the dark rust",
+      "The midground is the Photoshop file with a clear back, so the sky shows through the towers with no extra keying",
     ],
   },
   {

@@ -198,19 +198,6 @@ function keyFull(img) {
   return canvas;
 }
 
-/** Open the void behind midground structures. Leaves rust and dark metal alone. */
-function clearVoidBlack(img) {
-  const canvas = asCanvas(img);
-  const ctx = canvas.getContext("2d");
-  const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = image.data;
-  for (let i = 0; i < data.length; i += 4) {
-    if (data[i] <= 2 && data[i + 1] <= 2 && data[i + 2] <= 2) data[i + 3] = 0;
-  }
-  ctx.putImageData(image, 0, 0);
-  return canvas;
-}
-
 function extractBlobs(img, minArea = 180, opts = {}) {
   const minAlpha = opts.minAlpha ?? 12;
   const maxW = opts.maxW ?? Infinity;
@@ -402,7 +389,7 @@ export async function loadArt() {
 
   return {
     sky,
-    midground: clearVoidBlack(midgroundImg),
+    midground: midgroundImg,
     frame: frameImg,
     hero: { ...hero, hang },
     enemies: {
